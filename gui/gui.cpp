@@ -140,24 +140,24 @@ void CGUI::Render()
 	if(pChatWindow) 
 		pChatWindow->Render();
 
-	if(pDialogWindow) 
+	if(pDialogWindow && pDialogWindow->m_bIsActive) 
 		pDialogWindow->Render();
-	if(pSkinChanger) 
+	if(pSkinChanger && pSkinChanger->m_bIsActive) 
 		pSkinChanger->Render();
-	if(pModSAWindow) 
+	if(pModSAWindow && pModSAWindow->m_bIsActive) 
 		pModSAWindow->Render();
 	if(pExtraKeyBoard) 
 		pExtraKeyBoard->Render();
-	if(pMenu) 
+	if(pMenu && pMenu->m_bEnabled) 
 		pMenu->Render();
-	if(pTextDraw) 
+	if(pTextDraw && pTextDraw->m_bIsActive) 
 		pTextDraw->Render();
 
-	if(pServersWindow) 
+	if(pServersWindow && !pNetGame) 
 		pServersWindow->Render();
-	if(pCustomServer) 
+	if(pCustomServer && !pNetGame) 
 		pCustomServer->Render();
-	if(pSetsWindow) 
+	if(pSetsWindow && !pNetGame) 
 		pSetsWindow->Render();
 
 	if(pSpawnScreen) 
@@ -246,9 +246,9 @@ void CGUI::RenderCheatBox()
    	cbX = m_fCheatsBoxPosX;
    	cbY = m_fCheatsBoxPosY;
 
-   	int rCol1 = (rand() % 248 +240);
-   	int rCol2 = (rand() % 115 +110);
-   	int rCol3 = (rand() % 5 +1);
+   	int rCol1 = 248; //(rand() % 248 +240);
+   	int rCol2 = 110; // (rand() % 115 +110);
+   	int rCol3 = 5; //(rand() % 5 +1);
 
    	ImGui::GetBackgroundDrawList()->AddText(
 		ImVec2((cbX + 1.4) + (0.75 * 3.25), (cbY + 1.5)), 
