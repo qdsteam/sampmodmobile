@@ -302,7 +302,6 @@ void CKeyBoard::DeleteCharFromInput()
 }
 
 void funct(){
-	pNetGame->GetRakClient()->Disconnect(500);
 	pNetGame->SetGameState(GAMESTATE_WAIT_CONNECT);
 }
 
@@ -364,9 +363,10 @@ void CKeyBoard::Send()
 			pModSAWindow->m_bMenuStep = 1;
 			pModSAWindow->Show(true);
 			m_bEnable = false;
-		}else if((m_sInput == "/reconnect" or m_sInput == "/rec") && pNetGame && pNetGame->GetGameState() == GAMESTATE_CONNECTED){
+		}else if((m_sInput == "/reconnect" or m_sInput == "/rec")){
 			if(pNetGame->GetGameState() == GAMESTATE_CONNECTED){
 				pNetGame->ShutDownForGameRestart();
+				pNetGame->GetRakClient()->Disconnect(500);
 				Timer timer;
 				timer.add(std::chrono::milliseconds(15000), funct, true);
 				pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Reconnect in 15 seconds...");
