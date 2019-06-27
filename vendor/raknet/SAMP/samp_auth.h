@@ -1,0 +1,1 @@
+extern char *GenAuthKey(char *incomingKey);
