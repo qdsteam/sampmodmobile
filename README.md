@@ -1,4 +1,4 @@
-# sampmodmobile
+# SA-MP MOD Mobile
 
 Client command's:
 - /modsa or /ms - cheat menu.
@@ -31,7 +31,6 @@ Harmful Cheats.
 ----------------------------------------------------------
 All weapons.
 All Teleports + Marker teleport (onfoot & onvehicle).
-----------------------------------------------------------
 Pos Master (onfoot)
 ----------------------------------------------------------
 Settings.
