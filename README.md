@@ -29,9 +29,14 @@ Cheats.
 Harmful Cheats.
 - Blowup Car
 ----------------------------------------------------------
-All weapons.
-All Teleports + Marker teleport (onfoot & onvehicle).
+Weapons.
+- All weapons.
+
+Teleports.
+- All Teleports + Marker teleport (onfoot & onvehicle)
+
 Pos Master (onfoot)
+- 3x positions
 ----------------------------------------------------------
 Settings.
 - Clear chat
