@@ -59,7 +59,7 @@ RwImage* 	(*RtPNGImageRead)(const RwChar* imageName);
 
 void InitRenderWareFunctions()
 {
-	Log("Initializing RenderWare..");
+	//Log("Initializing RenderWare..");
 
 	/* skeleton.h */
 	RsGlobal = (RsGlobalType*)(g_libGTASA+0x95B068);

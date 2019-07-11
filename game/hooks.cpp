@@ -46,28 +46,28 @@ stFile* NvFOpen_hook(const char* r0, const char* r1, int r2, int r3)
 	if(!strncmp(r1+12, "mainV1.scm", 10))
 	{
 		sprintf(path, "%sSAMP/main.scm", g_pszStorage);
-		Log("Loading mainV1.scm..");
+		//Log("Loading mainV1.scm..");
 		goto open;
 	}
 	// ----------------------------
 	if(!strncmp(r1+12, "SCRIPTV1.IMG", 12))
 	{
 		sprintf(path, "%sSAMP/script.img", g_pszStorage);
-		Log("Loading script.img..");
+		//Log("Loading script.img..");
 		goto open;
 	}
 	// ----------------------------
 	if(!strncmp(r1, "DATA/PEDS.IDE", 13))
 	{
 		sprintf(path, "%s/SAMP/peds.ide", g_pszStorage);
-		Log("Loading peds.ide..");
+		//Log("Loading peds.ide..");
 		goto open;
 	}
 	// ----------------------------
 	if(!strncmp(r1, "DATA/VEHICLES.IDE", 17))
 	{
 		sprintf(path, "%s/SAMP/vehicles.ide", g_pszStorage);
-		Log("Loading vehicles.ide..");
+		//Log("Loading vehicles.ide..");
 		goto open;
 	}
 
@@ -150,7 +150,7 @@ uint16_t* CText_Get_hook(uintptr_t thiz, const char* text)
 
 void MainMenu_OnStartSAMP()
 {
-	Log("MainMenu: MultiPlayer selected.");
+	Log("Clicked MultiPlayer button.");
 
 	if(g_bPlaySAMP) return;
 
@@ -172,7 +172,7 @@ void MenuItem_add_hook(int r0, uintptr_t r1)
 
 	if(!strcmp(name, "FEP_STG") && !bMenuInited)
 	{
-		Log("Creating \"MultiPlayer\" button.. (struct: 0x%X)", r1);
+		//Log("Creating \"MultiPlayer\" button.. (struct: 0x%X)", r1);
 		// Nicaaai eiiieo "New Game"
 		MenuItem_add(r0, r1);
 
@@ -202,9 +202,10 @@ ret:
 void (*InitialiseRenderWare)();
 void InitialiseRenderWare_hook()
 {
-	Log("Loading \"samp\" cd..");
+	//Log("Loading \"samp\" cd..");
 
 	InitialiseRenderWare();
+	
 	// TextureDatabaseRuntime::Load()
 	(( void (*)(const char*, int, int))(g_libGTASA+0x1BF244+1))("samp", 0, 5);
 	return;
@@ -463,12 +464,102 @@ void __attribute__((naked)) CTaskComplexEnterCarAsDriver_hook(uint32_t thiz, uin
  	(*CTaskComplexLeaveCar)(thiz, pVehicle, iTargetDoor, iDelayTime, bSensibleLeaveCar, bForceGetOut);
  }
 
+void (*CPools_Initialise)(void);
+void CPools_Initialise_hook(void)
+{
+	Log("GTA pools initializing..");
+
+	struct PoolAllocator {
+
+		struct Pool {
+			void *objects;
+			uint8_t *flags;
+			uint32_t count;
+			uint32_t top;
+			uint32_t bInitialized;
+		};
+		static_assert(sizeof(Pool) == 0x14);
+
+		static Pool* Allocate(size_t count, size_t size) {
+			
+			Pool *p = new Pool;
+
+			p->objects = new char[size*count];
+			p->flags = new uint8_t[count];
+			p->count = count;
+			p->top = 0xFFFFFFFF;
+			p->bInitialized = 1;
+
+			for (size_t i = 0; i < count; i++) {
+				p->flags[i] |= 0x80;
+				p->flags[i] &= 0x80;
+			}
+
+			return p;
+		}
+	};
+	
+	// 600000 / 75000 = 8
+	static auto ms_pPtrNodeSingleLinkPool	= PoolAllocator::Allocate(100000,	8);		// 75000
+	// 72000 / 6000 = 12
+	static auto ms_pPtrNodeDoubleLinkPool	= PoolAllocator::Allocate(20000,	12);	// 6000
+	// 10000 / 500 = 20
+	static auto ms_pEntryInfoNodePool		= PoolAllocator::Allocate(20000,	20);	// 500
+	// 279440 / 140 = 1996
+	static auto ms_pPedPool					= PoolAllocator::Allocate(240,		1996);	// 140
+	// 286440 / 110 = 2604
+	static auto ms_pVehiclePool				= PoolAllocator::Allocate(2000,		2604);	// 110
+	// 840000 / 14000 = 60
+	static auto ms_pBuildingPool			= PoolAllocator::Allocate(20000,	60);	// 14000
+	// 147000 / 350 = 420
+	static auto ms_pObjectPool				= PoolAllocator::Allocate(3000,		420);	// 350
+	// 210000 / 3500 = 60
+	static auto ms_pDummyPool				= PoolAllocator::Allocate(40000,	60);	// 3500
+	// 487200 / 10150 = 48
+	static auto ms_pColModelPool			= PoolAllocator::Allocate(50000,	48);	// 10150
+	// 64000 / 500 = 128
+	static auto ms_pTaskPool				= PoolAllocator::Allocate(5000,		128);	// 500
+	// 13600 / 200 = 68
+	static auto ms_pEventPool				= PoolAllocator::Allocate(1000,		68);	// 200
+	// 6400 / 64 = 100
+	static auto ms_pPointRoutePool			= PoolAllocator::Allocate(200,		100);	// 64
+	// 13440 / 32 = 420
+	static auto ms_pPatrolRoutePool			= PoolAllocator::Allocate(200,		420);	// 32
+	// 2304 / 64 = 36
+	static auto ms_pNodeRoutePool			= PoolAllocator::Allocate(200,		36);	// 64
+	// 512 / 16 = 32
+	static auto ms_pTaskAllocatorPool		= PoolAllocator::Allocate(3000,		32);	// 16
+	// 92960 / 140 = 664
+	static auto ms_pPedIntelligencePool		= PoolAllocator::Allocate(240,		664);	// 140
+	// 15104 / 64 = 236
+	static auto ms_pPedAttractorPool		= PoolAllocator::Allocate(200,		236);	// 64
+
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93E0) = ms_pPtrNodeSingleLinkPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93DC) = ms_pPtrNodeDoubleLinkPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93D8) = ms_pEntryInfoNodePool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93D4) = ms_pPedPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93D0) = ms_pVehiclePool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93CC) = ms_pBuildingPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93C8) = ms_pObjectPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93C4) = ms_pDummyPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93C0) = ms_pColModelPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93BC) = ms_pTaskPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93B8) = ms_pEventPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93B4) = ms_pPointRoutePool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93B0) = ms_pPatrolRoutePool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93AC) = ms_pNodeRoutePool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93A8) = ms_pTaskAllocatorPool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93A4) = ms_pPedIntelligencePool;
+	*(PoolAllocator::Pool**)(g_libGTASA + 0x8B93A0) = ms_pPedAttractorPool;
+}
+
 void InstallSpecialHooks()
 {
 	InstallMethodHook(g_libGTASA+0x5DDC60, (uintptr_t)Init_hook);
 	SetUpHook(g_libGTASA+0x269974, (uintptr_t)MenuItem_add_hook, (uintptr_t*)&MenuItem_add);
 	SetUpHook(g_libGTASA+0x4D3864, (uintptr_t)CText_Get_hook, (uintptr_t*)&CText_Get);
 	SetUpHook(g_libGTASA+0x40C530, (uintptr_t)InitialiseRenderWare_hook, (uintptr_t*)&InitialiseRenderWare);
+	SetUpHook(g_libGTASA+0x3AF1A0, (uintptr_t)CPools_Initialise_hook, (uintptr_t*)&CPools_Initialise);
 }
 
 void InstallHooks()

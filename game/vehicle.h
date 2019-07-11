@@ -34,6 +34,7 @@ public:
 	unsigned int GetVehicleSubtype();
 
 	void SetEngineState(int iState);
+	void SetLightsState(int iState);
 	int GetDoorState();
 
 public:

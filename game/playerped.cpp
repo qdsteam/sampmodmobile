@@ -49,8 +49,7 @@ CPlayerPed::CPlayerPed(uint8_t bytePlayerNumber, int iSkin, float fX, float fY, 
 	ScriptCommand(&set_actor_immunities, m_dwGTAId, 0, 0, 1, 0, 0);
 	ScriptCommand(&set_actor_can_be_decapitated, m_dwGTAId, 0);
 
-	if(pNetGame)
-		SetMoney(pNetGame->m_iDeathDropMoney);
+	if(pNetGame) SetMoney(pNetGame->m_iDeathDropMoney);
 
 	SetModelIndex(iSkin);
 	ForceTargetRotation(fRotation);
@@ -1137,6 +1136,12 @@ uint16_t CPlayerPed::GetKeys(uint16_t *lrAnalog, uint16_t *udAnalog)
 	wRet <<= 1;
 	// KEY_ACTION
 	if(LocalPlayerKeys.bKeys[ePadKeys::KEY_ACTION]) wRet |= 1;
+	wRet <<= 1;
+	// KEY_YES
+	if(LocalPlayerKeys.bKeys[ePadKeys::KEY_YES]) wRet |= 1;
+	wRet <<= 1;
+	// KEY_NO
+	if(LocalPlayerKeys.bKeys[ePadKeys::KEY_NO]) wRet |= 1;
 
 	memset(LocalPlayerKeys.bKeys, 0, ePadKeys::SIZE);
 
@@ -1197,6 +1202,12 @@ void CPlayerPed::SetKeys(uint16_t wKeys, uint16_t lrAnalog, uint16_t udAnalog)
 	wKeys >>= 1;
 	// KEY_ANALOG_RIGHT
 	pad->bKeys[ePadKeys::KEY_ANALOG_RIGHT] = (wKeys & 1);
+	wKeys >>= 1;
+	// KEY_YES
+	pad->bKeys[ePadKeys::KEY_YES] = (wKeys & 1);
+	wKeys >>= 1;
+	// KEY_NO
+	pad->bKeys[ePadKeys::KEY_NO] = (wKeys & 1);
 
 	return;
 }

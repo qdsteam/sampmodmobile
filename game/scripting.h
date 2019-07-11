@@ -352,7 +352,7 @@ const SCRIPT_COMMAND set_char_heading					= { 0x0173, "ii" }; // actor handle, r
 
 const SCRIPT_COMMAND get_char_heading					= { 0x0172, "i" }; // actor handle
 
-const SCRIPT_COMMAND get_position_of_analogue_sticks	= { 0x0494, "i" }; // actor handle, returns int (4)
+const SCRIPT_COMMAND get_position_of_analogue_sticks	= { 0x0494, "i" }; // actor handle, return int 
 
 // Returns the offset of the specified Left/Right, Up/Down, Look Left/Look Right and Look Up/Look Down keys.
 // 
@@ -366,3 +366,21 @@ const SCRIPT_COMMAND get_position_of_analogue_sticks	= { 0x0494, "i" }; // actor
 // 4. Special Ctrl. Up: -128 - Down: 128
 
 const SCRIPT_COMMAND set_car_engine_on					= { 0x0918, "ii"}; // vehicle handle, state
+
+const SCRIPT_COMMAND swap_nearest_building_model		= { 0x03B6, "ffffii"}; // x,y,z,radius,model(from),model(to)
+
+const SCRIPT_COMMAND add_vehicle_mod					= { 0x06E7, "ii" };
+
+const SCRIPT_COMMAND set_visibility_of_closest_object_of_type = { 0x0363, "ffffii" }; // x,y,z,radius,model,state
+
+const SCRIPT_COMMAND give_player_clothes				= { 0x0784, "iiii" }; // actor handle, texture, model, bodypart
+
+const SCRIPT_COMMAND set_car_lights_on					= { 0x0919, "ii" }; // vehicle handle, state
+
+const SCRIPT_COMMAND force_car_lights					= { 0x067F, "ii" }; // vehicle handle, state
+ 
+const SCRIPT_COMMAND set_char_never_targetted			= { 0x0568, "ii" }; // actor handle, state
+
+const SCRIPT_COMMAND add_ammo_to_char					= { 0x0114, "iii" }; // actor handle, weapon handle, ammo count
+
+const SCRIPT_COMMAND set_char_ammo						= { 0x017B, "iii" }; // actor handle, weapon handle, ammo count

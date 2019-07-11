@@ -38,36 +38,6 @@ typedef struct _MATRIX4X4
 	float  pad_p;		// 60-64
 } MATRIX4X4, *PMATRIX4X4;
 
-#pragma pack(1)
-typedef struct _TEXT_DRAW_TRANSMIT
-{
-	float fLetterWidth;
-	float fLetterHeight;
-	uint32_t dwLetterColor;
-	float fLineWidth;
-	float fLineHeight;
-	uint32_t dwBoxColor;
-	union
-	{
-		uint16_t byteFlags;
-		struct
-		{
-			uint16_t byteBox : 1;
-			uint16_t byteLeft : 1;
-			uint16_t byteRight : 1;
-			uint16_t byteCenter : 1;
-			uint16_t byteProportional : 1;
-			uint16_t bytePadding : 3;
-		};
-	};
-	uint16_t byteShadow;
-	uint16_t byteOutline;
-	uint32_t dwBackgroundColor;
-	uint16_t byteStyle;
-	float fX;
-	float fY;
-} TEXT_DRAW_TRANSMIT;
-
 //-----------------------------------------------------------
 
 #pragma pack(1)
@@ -83,7 +53,7 @@ typedef struct _ENTITY_TYPE
 	VECTOR vecMoveSpeed; 	// 68-80	;vecMoveSpeed
 	VECTOR vecTurnSpeed; 	// 80-92	;vecTurnSpeed
 	PADDING(_pad94, 88);	// 92-180
-	uintptr_t dwUnkModelRel; // 180-184 ;ñîòêà èíôà
+	uintptr_t dwUnkModelRel; // 180-184 ;Ã±Ã®Ã²ÃªÃ  Ã¨Ã­Ã´Ã 
 
 } ENTITY_TYPE;
 

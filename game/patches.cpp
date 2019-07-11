@@ -9,7 +9,7 @@ void ApplyPatches_level0()
 	PLAYERS_REALLOC = (( char* (*)(int))(g_libGTASA+0x179B40))(404*MAX_PLAYERS);
 	UnFuck(g_libGTASA+0x5D021C);
 	*(char**)(g_libGTASA+0x5D021C) = PLAYERS_REALLOC;
-	Log("CWorld::Player new address = 0x%X", PLAYERS_REALLOC);
+	//Log("CWorld::Player new address = 0x%X", PLAYERS_REALLOC);
 
 	// CdStreamInit(6);
 	WriteMemory(g_libGTASA+0x3981EC, (uintptr_t)"\x06\x20", 2);
@@ -17,7 +17,7 @@ void ApplyPatches_level0()
 
 void ApplyPatches()
 {
-	Log("Installing patches..");
+	//Log("Installing patches..");
 
 	// CAudioEngine::StartLoadingTune
 	NOP(g_libGTASA+0x56C150, 2);
@@ -84,7 +84,7 @@ void ApplyPatches()
 
 void ApplyInGamePatches()
 {
-	Log("Installing patches (ingame)..");
+	//Log("Installing patches (ingame)..");
 
 	/* Ðàçáëîêèðîâêà êàðòû */
 	// CTheZones::ZonesVisited[100]
@@ -138,8 +138,8 @@ void ApplyInGamePatches()
     *(uint8_t*)(g_libGTASA+0x2F7B6B) = 0xBE;
 
     // CPed::RemoveWeaponWhenEnteringVehicle (GetPlayerInfoForThisPlayerPed)
-    UnFuck(g_libGTASA+0x434D94);
-    NOP(g_libGTASA+0x434D94, 6);
+   	UnFuck(g_libGTASA+0x434D94);
+   	NOP(g_libGTASA+0x434D94, 6);
 
     // CBike::ProcessAI
     UnFuck(g_libGTASA+0x4EE200);

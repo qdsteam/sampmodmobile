@@ -93,11 +93,14 @@ CVehicle::~CVehicle()
 		}
 
 		RemoveEveryoneFromVehicle();
+
 		if(ScriptCommand(&is_car_siren_on, m_dwGTAId)) 
 			ScriptCommand(&switch_car_siren, m_dwGTAId, 0);
 
 		if(m_pTrailer)
-		{}
+		{
+			// допилить
+		}
 
 		if( m_pVehicle->entity.nModelIndex == TRAIN_PASSENGER_LOCO || m_pVehicle->entity.nModelIndex == TRAIN_FREIGHT_LOCO)
 		{
@@ -151,7 +154,8 @@ float CVehicle::GetHealth()
 	if(m_pVehicle)
 		return m_pVehicle->fHealth; 
 
-	if(!m_pVehicle)return 0.0f;
+	if(!m_pVehicle)
+		return 0.0f;
 }
 
 // 0.3.7
@@ -306,7 +310,9 @@ void CVehicle::SetDoorState(int iState)
 
 int CVehicle::GetDoorState()
 {
-	if(m_pVehicle->dwDoorsLocked == 2)return 1; else return 0;
+	if(m_pVehicle->dwDoorsLocked == 2)
+		return 1; 
+			else return 0;
 }
 
 void CVehicle::SetEngineState(int iState)
@@ -314,10 +320,22 @@ void CVehicle::SetEngineState(int iState)
 	if(iState == 1)
 	{
 		ScriptCommand(&set_car_engine_on, m_dwGTAId, 1);
-		ScriptCommand(&freeze_car_position, m_dwGTAId, 0);
+		//ScriptCommand(&freeze_car_position, m_dwGTAId, 0);
 	}else{
 		ScriptCommand(&set_car_engine_on, m_dwGTAId, 0);
-		ScriptCommand(&freeze_car_position, m_dwGTAId, 1);
+		//ScriptCommand(&freeze_car_position, m_dwGTAId, 1);
+	}
+}
+
+void CVehicle::SetLightsState(int iState)
+{
+	if(iState == 1)
+	{
+		ScriptCommand(&set_car_lights_on, m_dwGTAId, 1);
+		ScriptCommand(&force_car_lights, m_dwGTAId, 2);
+	}else{
+		ScriptCommand(&set_car_lights_on, m_dwGTAId, 0);
+		ScriptCommand(&force_car_lights, m_dwGTAId, 1);
 	}
 }
 

@@ -16,6 +16,30 @@ uint8_t byteCurPlayer = 0;
 uint8_t byteCurDriver = 0;
 uint8_t byteCurWeapon = 0;
 
+uint32_t (*CPad__GetEnterTargeting)(uintptr_t thiz);
+uint32_t CPad__GetEnterTargeting_hook(uintptr_t thiz)
+{
+	if(dwCurPlayerActor && (byteCurPlayer != 0))
+	{
+		return RemotePlayerKeys[byteCurPlayer].bKeys[ePadKeys::KEY_HANDBRAKE];
+	} else {
+		LocalPlayerKeys.bKeys[ePadKeys::KEY_HANDBRAKE] = CPad__GetEnterTargeting(thiz);
+		return LocalPlayerKeys.bKeys[ePadKeys::KEY_HANDBRAKE];
+	}
+}
+
+uint32_t (*CCamera_IsTargetingActive)(uintptr_t thiz);
+uint32_t CCamera_IsTargetingActive_hook(uintptr_t thiz)
+{
+	if(dwCurPlayerActor && (byteCurPlayer != 0))
+	{
+		return RemotePlayerKeys[byteCurPlayer].bKeys[ePadKeys::KEY_HANDBRAKE];
+	} else {
+		LocalPlayerKeys.bKeys[ePadKeys::KEY_HANDBRAKE] = CCamera_IsTargetingActive(thiz);
+		return LocalPlayerKeys.bKeys[ePadKeys::KEY_HANDBRAKE];
+	}
+}
+
 uint16_t (*CPad__GetPedWalkLeftRight)(uintptr_t thiz);
 uint16_t CPad__GetPedWalkLeftRight_hook(uintptr_t thiz)
 {
@@ -172,11 +196,17 @@ uint32_t CPad__DuckJustDown_hook(uintptr_t thiz, int unk)
 {
 	if(dwCurPlayerActor && (byteCurPlayer != 0))
 	{
-		return RemotePlayerKeys[byteCurPlayer].bKeys[ePadKeys::KEY_CROUCH];
-	}
-	else
-	{
-		LocalPlayerKeys.bKeys[ePadKeys::KEY_CROUCH] = CPad__DuckJustDown(thiz, unk);
+		uint32_t dwResult = 0;
+		if(RemotePlayerKeys[byteCurPlayer].bKeys[ePadKeys::KEY_CROUCH])
+			dwResult = 1;
+
+		return dwResult;
+	} else {
+		uint32_t dwResult = CPad__DuckJustDown(thiz, unk);
+
+		if(dwResult == 1) LocalPlayerKeys.bKeys[ePadKeys::KEY_CROUCH] = 1;
+			else LocalPlayerKeys.bKeys[ePadKeys::KEY_CROUCH] = 0;
+
 		return LocalPlayerKeys.bKeys[ePadKeys::KEY_CROUCH];
 	}
 }
@@ -321,6 +351,26 @@ uint32_t CPad__GetHandBrake_hook(uintptr_t thiz)
 	}
 }
 
+//uint32_t (*CPad__GetNitroFired)(uintptr_t thiz);
+//uint32_t CPad__GetNitroFired_hook(uintptr_t thiz)
+//{
+//	CPlayerPool *pPlayerPool;
+//	CLocalPlayer *pLocalPlayer;
+//	
+//	if(byteCurDriver != 0)
+//	{
+//		// remote player
+//		return RemotePlayerKeys[byteCurDriver].bKeys[ePadKeys::KEY_HANDBRAKE] ? 0xFF : 0x00;
+//	}
+//	else
+//	{
+//		// local player
+//		uint32_t handBrake = CPad__GetNitroFired(thiz);
+//		LocalPlayerKeys.bKeys[ePadKeys::KEY_HANDBRAKE] = handBrake;
+//		return handBrake;
+//	}
+//}
+
 uint32_t (*CPad__GetHorn)(uintptr_t thiz);
 uint32_t CPad__GetHorn_hook(uintptr_t thiz)
 {
@@ -361,6 +411,8 @@ uint32_t CPad__ExitVehicleJustDown_hook(uintptr_t thiz, int a2, uintptr_t vehicl
 
 	return CPad__ExitVehicleJustDown(thiz, a2, vehicle, a4, vec);
 }
+
+
 
 void (*CPed__ProcessControl)(uintptr_t thiz);
 void CPed__ProcessControl_hook(uintptr_t thiz)
@@ -483,6 +535,7 @@ void HookCPad()
 
 	// CPed::ProcessControl
 	SetUpHook(g_libGTASA+0x45A280, (uintptr_t)CPed__ProcessControl_hook, (uintptr_t*)&CPed__ProcessControl);
+	
 	// all vehicles ProcessControl
 	InstallMethodHook(g_libGTASA+0x5CCA1C, (uintptr_t)AllVehicles__ProcessControl_hook); // CAutomobile::ProcessControl
 	InstallMethodHook(g_libGTASA+0x5CCD74, (uintptr_t)AllVehicles__ProcessControl_hook); // CBoat::ProcessControl
@@ -493,6 +546,10 @@ void HookCPad()
 	InstallMethodHook(g_libGTASA+0x5CCFB4, (uintptr_t)AllVehicles__ProcessControl_hook); // CMonsterTruck::ProcessControl
 	InstallMethodHook(g_libGTASA+0x5CD204, (uintptr_t)AllVehicles__ProcessControl_hook); // CQuadBike::ProcessControl
 	InstallMethodHook(g_libGTASA+0x5CD454, (uintptr_t)AllVehicles__ProcessControl_hook); // CTrain::ProcessControl
+
+	// Aim
+	SetUpHook(g_libGTASA+0x39E498, (uintptr_t)CPad__GetEnterTargeting_hook, (uintptr_t*)&CPad__GetEnterTargeting);
+	SetUpHook(g_libGTASA+0x37440C, (uintptr_t)CCamera_IsTargetingActive_hook, (uintptr_t*)&CCamera_IsTargetingActive);
 
 	// lr/ud (onfoot)
 	SetUpHook(g_libGTASA+0x39D08C, (uintptr_t)CPad__GetPedWalkLeftRight_hook, (uintptr_t*)&CPad__GetPedWalkLeftRight);
@@ -506,7 +563,7 @@ void HookCPad()
 	SetUpHook(g_libGTASA+0x39E824, (uintptr_t)CPad__GetAutoClimb_hook, (uintptr_t*)&CPad__GetAutoClimb);
 	SetUpHook(g_libGTASA+0x39E8C0, (uintptr_t)CPad__GetAbortClimb_hook, (uintptr_t*)&CPad__GetAbortClimb);
 	
-	// swimm
+	// swim
 	SetUpHook(g_libGTASA+0x39EA0C, (uintptr_t)CPad__DiveJustDown_hook, (uintptr_t*)&CPad__DiveJustDown);
 	SetUpHook(g_libGTASA+0x39EA4C, (uintptr_t)CPad__SwimJumpJustDown_hook, (uintptr_t*)&CPad__SwimJumpJustDown);
 
