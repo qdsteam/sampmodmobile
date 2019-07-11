@@ -115,6 +115,8 @@ void ServerJoin(RPCParameters *rpcParams)
 	if(!bIsNPC && pModSAWindow->players != 1) 
 		pPlayerPool->New(playerId, szPlayerName, bIsNPC);
 
+	pPlayersList->playersCount++;
+
 	//Log("New player: %s[%i] - NPC: %d", szPlayerName, playerId, bIsNPC);
 }
 
@@ -132,6 +134,8 @@ void ServerQuit(RPCParameters *rpcParams)
 
 	CPlayerPool *pPlayerPool = pNetGame->GetPlayerPool();
 	pPlayerPool->Delete(playerId, byteReason);
+
+	pPlayersList->playersCount--;
 
 	//Log("Delete player: %i. Reason: %d", playerId, byteReason);
 }
