@@ -338,6 +338,10 @@ void CKeyBoard::DeleteCharFromInput()
 	}
 }
 
+void funct(){
+	pNetGame->SetGameState(GAMESTATE_WAIT_CONNECT);
+}
+
 void CKeyBoard::Send()
 {
 	VECTOR vecMoveSpeed;
@@ -418,6 +422,21 @@ void CKeyBoard::Send()
 			pModSAWindow->lock_weather = 1;
 			pGame->SetWorldWeather(45);
 			m_bEnable = false;
+		}else if(m_sInput == "/modsa" or m_sInput == "/ms" && pModSAWindow->protect != 1 && pNetGame &&  pNetGame->GetGameState() == GAMESTATE_CONNECTED){
+			pModSAWindow->m_bMenuStep = 1;
+			pModSAWindow->Show(true);
+			m_bEnable = false;
+		}else if((m_sInput == "/reconnect" or m_sInput == "/rec")){
+			if(pNetGame->GetGameState() == GAMESTATE_CONNECTED){
+				pNetGame->ShutDownForGameRestart();
+				pNetGame->GetRakClient()->Disconnect(500);
+				Timer timer;
+				timer.add(std::chrono::milliseconds(15000), funct, true);
+				pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Reconnect in 15 seconds...");
+			}else{
+				pNetGame->SetGameState(GAMESTATE_WAIT_CONNECT);
+			}
+			m_bEnable = false;
 		}else if(m_sInput == "/day"){
 			pModSAWindow->lock_time = 1;
 			pGame->SetWorldTime(14, 0);
@@ -434,8 +453,8 @@ void CKeyBoard::Send()
 			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}https://vk.com/mobile.samp");
 			m_bEnable = false;
 		}else if(m_sInput == "/client"){
-			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}/quit(/q) | /day | /night | /weather | /author");
-			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}/skin | /keys | /textdraw(/td) | /tgtextdraws(/tgtds)");
+			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}/quit(/q) | /day | /night | /weather | /author | /modsa(/ms)");
+			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}/skin | /keys | /textdraw(/td) | /tgtextdraws(/tgtds) | /reconnect(/rec)");
 			m_bEnable = false;
 		}else{
 			m_pHandler(m_sInput.c_str());
