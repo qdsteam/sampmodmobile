@@ -18,7 +18,6 @@
 #include "../sets.h"
 #include "../textdraw.h"
 #include "../playerslist.h"
-//#include "../shpora.h"
 #include "../skinchanger.h"
 #include <time.h>
 #include <ctime>
@@ -26,7 +25,6 @@
 #include <string.h>
 
 extern CModSAWindow *pModSAWindow;
-//extern CShpora *pShpora;
 extern CPlayersList *pPlayersList;
 extern CSkinChanger *pSkinChanger;
 extern CExtraKeyBoard *pExtraKeyBoard;
@@ -127,9 +125,6 @@ void CGUI::Render()
 	ImGui_ImplRenderWare_NewFrame();
 	ImGui::NewFrame();
 
-	if(m_fCheatsBox) 
-		RenderCheatBox();
-
 	if(pPlayerTags) pPlayerTags->Render();
 	
 	if(pNetGame && pNetGame->GetLabelPool())
@@ -140,25 +135,25 @@ void CGUI::Render()
 	if(pChatWindow) 
 		pChatWindow->Render();
 
-	if(pDialogWindow && pDialogWindow->m_bIsActive) 
-		pDialogWindow->Render();
-	if(pSkinChanger && pSkinChanger->m_bIsActive) 
-		pSkinChanger->Render();
-	if(pModSAWindow && pModSAWindow->m_bIsActive) 
-		pModSAWindow->Render();
 	if(pExtraKeyBoard) 
 		pExtraKeyBoard->Render();
 	if(pMenu && pMenu->m_bEnabled) 
 		pMenu->Render();
 	if(pTextDraw && pTextDraw->m_bIsActive) 
 		pTextDraw->Render();
+	if(pDialogWindow && pDialogWindow->m_bIsActive) 
+		pDialogWindow->Render();
+	if(pModSAWindow && pModSAWindow->m_bIsActive) 
+		pModSAWindow->Render();
+	if(pSkinChanger && pSkinChanger->m_bIsActive)
+		pSkinChanger->Render();
+	if(pPlayersList && pPlayersList->m_bIsActive)
+		pPlayersList->Render();
 
-	if(pServersWindow && !pNetGame) 
-		pServersWindow->Render();
+	//if(m_fCheatsBox)RenderCheatBox();
+
 	if(pCustomServer && !pNetGame) 
 		pCustomServer->Render();
-	if(pSetsWindow && !pNetGame) 
-		pSetsWindow->Render();
 
 	if(pSpawnScreen) 
 		pSpawnScreen->Render();
@@ -191,7 +186,7 @@ bool CGUI::OnTouchEvent(int type, bool multi, int x, int y)
 
 		if((x >= m_fCheatsBoxPosX && y >= m_fCheatsBoxPosY) && (x <= m_fCheatsBoxPosX + 80 && y <= m_fCheatsBoxPosY + 120))
 		{
-			if(!pDialogWindow->m_bIsActive && pNetGame && pNetGame->GetGameState() == GAMESTATE_CONNECTED)
+			if(pNetGame && pNetGame->GetGameState() == GAMESTATE_CONNECTED)
 			{
 				pModSAWindow->m_bMenuStep = 1;
 				pModSAWindow->Show(true);
