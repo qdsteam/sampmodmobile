@@ -150,7 +150,7 @@ void CGUI::Render()
 	if(pPlayersList && pPlayersList->m_bIsActive)
 		pPlayersList->Render();
 
-	//if(m_fCheatsBox)RenderCheatBox();
+	if(m_fCheatsBox) RenderCheatBox();
 
 	if(pCustomServer && !pNetGame) 
 		pCustomServer->Render();
