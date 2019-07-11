@@ -90,7 +90,6 @@ private:
 	void Packet_VehicleSync(Packet* pkt);
 	void Packet_PassengerSync(Packet* pkt);
 	void Packet_MarkersSync(Packet* pkt);
-	void Packet_WeaponsUpdate(Packet *pkt);
 
 public:
 	char m_szHostName[0xFF];

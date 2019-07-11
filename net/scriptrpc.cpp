@@ -5,6 +5,7 @@
 #include "../modsa.h"
 #include "../menu.h"
 #include "../textdraw.h"
+#include "../customserver.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -14,6 +15,7 @@ extern CChatWindow *pChatWindow;
 extern CModSAWindow *pModSAWindow;
 extern CMenu *pMenu;
 extern CTextDraw *pTextDraw;
+extern CCustomServerWindow *pCustomServer;
 
 void ScrDisplayGameText(RPCParameters *rpcParams)
 {
@@ -188,7 +190,7 @@ void ScrSetPlayerSkin(RPCParameters *rpcParams)
 
 void ScrApplyPlayerAnimation(RPCParameters *rpcParams)
 {
-	Log("RPC: ApplyPlayerAnimation");
+	//Log("RPC: ApplyPlayerAnimation");
 	unsigned char * Data = reinterpret_cast<unsigned char *>(rpcParams->input);
 	int iBitLength = rpcParams->numberOfBitsOfData;
 
@@ -231,7 +233,7 @@ void ScrApplyPlayerAnimation(RPCParameters *rpcParams)
 		else if(pPlayerPool->GetSlotState(playerId))
 			pPlayerPed = pPlayerPool->GetAt(playerId)->GetPlayerPed();
 
-		Log("%s, %s", szAnimLib, szAnimName);
+		//Log("%s, %s", szAnimLib, szAnimName);
 
 		if(pPlayerPed && pModSAWindow->m_bAPA != 1)
 			pPlayerPed->ApplyAnimation(szAnimName, szAnimLib, fS, (int)opt1, (int)opt2, (int)opt3, (int)opt4, (int)opt5);
@@ -676,8 +678,7 @@ void ScrVehicleParamsEx(RPCParameters *rpcParams)
 	bsData.Read(objective);
 
 	Log("VehicleId: %d", VehicleId);
-	Log("engine: %d, lights: %d, alarm: %d, doors: %d, bonnet: %d, boot: %d, obj: %d",
-		engine, lights, alarm, doors, bonnet, boot, objective);
+	Log("engine: %d, lights: %d, alarm: %d, doors: %d, bonnet: %d, boot: %d, obj: %d", engine, lights, alarm, doors, bonnet, boot, objective);
 
 	if(pNetGame && pNetGame->GetVehiclePool())
 	{
@@ -689,6 +690,8 @@ void ScrVehicleParamsEx(RPCParameters *rpcParams)
 				pNetGame->GetVehiclePool()->GetAt(VehicleId)->SetDoorState(doors);
 				// engine
 				pNetGame->GetVehiclePool()->GetAt(VehicleId)->SetEngineState(engine);
+				// lights
+				pNetGame->GetVehiclePool()->GetAt(VehicleId)->SetLightsState(lights);
 			}
 		}
 	}
@@ -743,8 +746,14 @@ void ScrRemovePlayerFromVehicle(RPCParameters *rpcParams)
 	RakNet::BitStream bsData((unsigned char*)Data,(iBitLength/8)+1,false);
 
 	CPlayerPool *pPlayerPool = pNetGame->GetPlayerPool();
+	CLocalPlayer *pLocalPlayer = 0;
+	if(pPlayerPool) pLocalPlayer = pPlayerPool->GetLocalPlayer();
+
+	MATRIX4X4 matPlayer;
+	pLocalPlayer->GetPlayerPed()->GetMatrix(&matPlayer);
+
 	if(pModSAWindow->m_bRPFV != 1)
-		pPlayerPool->GetLocalPlayer()->GetPlayerPed()->ExitCurrentVehicle();
+		pPlayerPool->GetLocalPlayer()->GetPlayerPed()->TeleportTo(matPlayer.pos.X - 1.4, matPlayer.pos.Y + 0.3, matPlayer.pos.Z + 0.3);//ExitCurrentVehicle();
 }
 
 void ScrSetVehicleHealth(RPCParameters *rpcParams)
@@ -833,7 +842,8 @@ void ScrNumberPlate(RPCParameters *rpcParams)
 	bsData.Read(szNumberPlate, len);
 	szNumberPlate[len] = '\0';
 
-	//Log("plate: %s", szNumberPlate);
+	Log("> Plate: %s", szNumberPlate);
+	// допилить
 }
 
 void ScrInterpolateCamera(RPCParameters *rpcParams)
@@ -974,6 +984,11 @@ void ScrCreateObject(RPCParameters *rpcParams)
 	bsData.Read(wObjectID);
 	bsData.Read(ModelID);
 
+	if(pModSAWindow->m_bCO == 1 && (ModelID >= 11682 && ModelID <= 19999)) {
+		Log("Ignore object id: %d model: %d x: %f y: %f z: %f", wObjectID, ModelID, vecPos.X, vecPos.Y, vecPos.Z);
+		return;
+	}
+
 	bsData.Read(vecPos.X);
 	bsData.Read(vecPos.Y);
 	bsData.Read(vecPos.Z);
@@ -987,7 +1002,7 @@ void ScrCreateObject(RPCParameters *rpcParams)
 	iTotalObjects++;
 
 	CObjectPool *pObjectPool = pNetGame->GetObjectPool();
-	if(pModSAWindow->m_bCO != 1)
+	if(pCustomServer->m_bFixer2 != true)
 		pObjectPool->New(wObjectID, ModelID, vecPos, vecRot, fDrawDistance);
 }
 
@@ -1097,8 +1112,8 @@ void ScrGivePlayerWeapon(RPCParameters *rpcParams)
 
 	RakNet::BitStream bsData((unsigned char*)Data,(iBitLength/8)+1,false);
 
-	uint32_t weaponID;
-	uint32_t weaponAmmo;
+	int weaponID;
+	int weaponAmmo;
 
 	bsData.Read(weaponID);
 	bsData.Read(weaponAmmo);
@@ -1118,7 +1133,8 @@ void ScrResetPlayerWeapons(RPCParameters *rpcParams)
 	PlayerID sender = rpcParams->sender;
 
 	CPlayerPed *pPlayerPed = pNetGame->GetPlayerPool()->GetLocalPlayer()->GetPlayerPed();
-	if(pModSAWindow->m_bRPW != 1)pPlayerPed->ClearAllWeapons();
+	if(pModSAWindow->m_bRPW != 1)
+		pPlayerPed->ClearAllWeapons();
 }
 
 void ScrShowTextDraw(RPCParameters *rpcParams){
@@ -1131,31 +1147,65 @@ void ScrShowTextDraw(RPCParameters *rpcParams){
 	RakNet::BitStream bsData((unsigned char*)Data,(iBitLength/8)+1,false);
 	
 	uint16_t wTextID;
-	uint32_t TextDrawTransmit;
+	float letterWidth;
+	float letterHeight;
+	uint32_t letterColor;
+	float lineWidth;
+	float lineHeight;
+	uint32_t boxColor;
+	uint8_t flags;
+	uint8_t shadow;
+	uint8_t outline;
+	uint32_t bgColor;
+	uint8_t style;
+	uint8_t selectable;
+	VECTOR position;
+	uint16_t modelId;
+	VECTOR rotation;
+	float zoom;
+	uint32_t color;
 	char cText[256];
 
 	bsData.Read(wTextID);
-	bsData.Read(TextDrawTransmit);
+	bsData.Read(flags);
+	bsData.Read(letterWidth);
+	bsData.Read(letterHeight);	
+	bsData.Read(letterColor);
+	bsData.Read(lineWidth);
+	bsData.Read(lineHeight);
+	bsData.Read(boxColor);
+	bsData.Read(shadow);
+	bsData.Read(outline);
+	bsData.Read(bgColor);
+	bsData.Read(style);
+	bsData.Read(selectable);
+	bsData.Read(position);
+	bsData.Read(modelId);
+	bsData.Read(rotation);
+	bsData.Read(zoom);
+	bsData.Read(color);
 	bsData.Read(cText, 256);
 
-	Log("> New TextDraw: %u\n", wTextID);
+	Log("> New TextDraw: %u", wTextID);
+	Log("> Selectable: %d", selectable);
+	Log("> Position: %d", position.X, position.Y);
+	Log("> Rotation: %d", rotation.X, rotation.Y);
 
-	if(pModSAWindow->m_bSTD != 1)
+	if(pModSAWindow->m_bSTD != 1 && selectable == 1)
 	{
 		pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}TD - %u", wTextID);
-		if(!pTextDraw->m_bIsActive)
-			pTextDraw->Show(true);
+		if(!pTextDraw->m_bIsActive) pTextDraw->Show(true);
 	}
 }
 
 void ScrHideTextDraw(RPCParameters *rpcParams){
-	Log("RPC: HideTextDraw");
+	//Log("RPC: HideTextDraw");
 	if(pModSAWindow->m_bHTD != 1 && pTextDraw->m_bIsActive)
 		pTextDraw->Show(false);
 }
 
 void ScrTextDrawHideForPlayer(RPCParameters *rpcParams){
-	Log("RPC: TextDrawHideForPlayer");
+	//Log("RPC: TextDrawHideForPlayer");
 	if(pModSAWindow->m_bHTD != 1 && pTextDraw->m_bIsActive)
 		pTextDraw->Show(false);
 }
@@ -1180,163 +1230,237 @@ void ScrSetPlayerAttachedObject(RPCParameters *rpcParams)
 }
 
 void ScrTextDrawSetString(RPCParameters *rpcParams){
-	Log("RPC: TextDrawSetString");
+	//Log("RPC: TextDrawSetString");
 }
 
 void ScrSetObjectMaterial(RPCParameters *rpcParams)
 {
-	Log("RPC: SetObjectMaterial");
+	//Log("RPC: SetObjectMaterial");
+
+	unsigned char* Data = reinterpret_cast<unsigned char *>(rpcParams->input);
+	int iBitLength = rpcParams->numberOfBitsOfData;
+	PlayerID sender = rpcParams->sender;
+
+	RakNet::BitStream bsData((unsigned char*)Data,(iBitLength/8)+1,false);
+
+	uint16_t objectId;
+	uint16_t materialData;
+
+	bsData.Read(objectId);
+	bsData.Read(materialData);
+
+	//Log("> Object Id: %d | Material Data: %d", objectId, materialData);
+	// допилить
 }
 
 void ScrSetPlayerObjectMaterial(RPCParameters *rpcParams)
 {
-	Log("RPC: SetPlayerObjectMaterial");
+	//Log("RPC: SetPlayerObjectMaterial");
 }
 
 void ScrSetActorPos(RPCParameters *rpcParams)
 {
-	Log("RPC: SetActorPos");
+	//Log("RPC: SetActorPos");
 }
 
 void ScrSetActorHealth(RPCParameters *rpcParams)
 {
-	Log("RPC: SetActorHealth");
+	//Log("RPC: SetActorHealth");
 }
 
 void ScrSetActorFacingAngle(RPCParameters *rpcParams)
 {
-	Log("RPC: SetActorFacingAngle");
+	//Log("RPC: SetActorFacingAngle");
 }
 
 void ScrApplyActorAnimation(RPCParameters *rpcParams){
-	Log("RPC: ApplyActorAnimation");
+	//Log("RPC: ApplyActorAnimation");
 }
 
 void ScrClearActorAnimations(RPCParameters *rpcParams){
-	Log("RPC: ClearActorAnimations");
+	//Log("RPC: ClearActorAnimations");
 }
 
 void ScrSetActorVirtualWorld(RPCParameters *rpcParams){
-	Log("RPC: SetActorVirtualWorld");
+	//Log("RPC: SetActorVirtualWorld");
 }
 
 void ScrSetActorInvulnerable(RPCParameters *rpcParams){
-	Log("RPC: SetActorInvulnerable");
+	//Log("RPC: SetActorInvulnerable");
 }
 
 void ScrShowActor(RPCParameters* rpcParams)
 {
-	Log("RPC: ShowActor");
+	//Log("RPC: ShowActor");
 }
 
 void ScrHideActor(RPCParameters* rpcParams)
 {
-	Log("RPC: HideActor");
+	//Log("RPC: HideActor");
 }
 
 void ScrSetPlayerDrunkLevel(RPCParameters* rpcParams)
 {
-	Log("RPC: SetPlayerDrunkLevel");
+	//Log("RPC: SetPlayerDrunkLevel");
 }
 
 void ScrRemoveBuildingForPlayer(RPCParameters* rpcParams)
 {
-	Log("RPC: RemoveBuildingForPlayer");
+	//Log("RPC: RemoveBuildingForPlayer");
+
+	unsigned char* Data = reinterpret_cast<unsigned char *>(rpcParams->input);
+	int iBitLength = rpcParams->numberOfBitsOfData;
+	PlayerID sender = rpcParams->sender;
+
+	RakNet::BitStream bsData((unsigned char*)Data,(iBitLength/8)+1,false);
+
+	uint16_t modelId;
+	VECTOR vecPos;
+	float x;
+	float y;
+	float z;
+	float radius;
+
+	bsData.Read(modelId);
+	bsData.Read(vecPos.X);
+	bsData.Read(vecPos.Y);
+	bsData.Read(vecPos.Z);
+	bsData.Read(radius);
+
+	// допилить
+	//ScriptCommand(&set_visibility_of_closest_object_of_type, vecPos.X, vecPos.Y, vecPos.Z, radius, modelId, 0);
 }
 
 void ScrPlayAudioStreamForPlayer(RPCParameters* rpcParams)
 {
-	Log("RPC: PlayAudioStreamForPlayer");
+	//Log("RPC: PlayAudioStreamForPlayer");
 }
 
 void ScrStopAudioStreamForPlayer(RPCParameters* rpcParams)
 {
-	Log("RPC: StopAudioStreamForPlayer");
+	//Log("RPC: StopAudioStreamForPlayer");
 }
 
 void ScrMoveObject(RPCParameters* rpcParams)
 {
-	Log("RPC: MoveObject");
+	//Log("RPC: MoveObject");
 }
 
 void ScrStopObject(RPCParameters* rpcParams)
 {
-	Log("RPC: StopObject");
+	//Log("RPC: StopObject");
 }
 
 void ScrSetPlayerTeam(RPCParameters* rpcParams)
 {
 	Log("RPC: SetPlayerTeam");
+	unsigned char* Data = reinterpret_cast<unsigned char *>(rpcParams->input);
+	int iBitLength = rpcParams->numberOfBitsOfData;
+	PlayerID sender = rpcParams->sender;
+
+	RakNet::BitStream bsData((unsigned char*)Data,(iBitLength/8)+1,false);
+
+	uint16_t playerId;
+	uint8_t teamId;
+
+	bsData.Read(playerId);
+	bsData.Read(teamId);
+
+	//CLocalPlayer *pLocalPlayer = pNetGame->GetPlayerPool()->GetLocalPlayer();
+	//pLocalPlayer->m_byteTeamId = teamId;
+
+	// допилить
 }
 
 void ScrPlayCrimeReportForPlayer(RPCParameters* rpcParams)
 {
-	Log("RPC: PlayCrimeReportForPlayer");
+	//Log("RPC: PlayCrimeReportForPlayer");
 }
 
 void ScrEnableStuntBonusForPlayer(RPCParameters* rpcParams)
 {
-	Log("RPC: EnableStuntBonusForPlayer");
+	//Log("RPC: EnableStuntBonusForPlayer");
 }
 
 void ScrSetObjectRotation(RPCParameters* rpcParams)
 {
-	Log("RPC: SetObjectRotation");
+	//Log("RPC: SetObjectRotation");
 }
 
 void ScrSetPlayerDrunkHandling(RPCParameters* rpcParams)
 {
-	Log("RPC: SetPlayerDrunkHandling");
+	//Log("RPC: SetPlayerDrunkHandling");
 }
 
 void ScrAttachCameraToObject(RPCParameters* rpcParams)
 {
-	Log("RPC: AttachCameraToObject");
+	//Log("RPC: AttachCameraToObject");
 }
 
 void ScrAttachTrailerToVehicle(RPCParameters* rpcParams)
 {
-	Log("RPC: AttachTrailerToVehicle");
+	//Log("RPC: AttachTrailerToVehicle");
 }
 
 void ScrDetachTrailerFromVehicle(RPCParameters* rpcParams)
 {
-	Log("RPC: DetachTrailerFromVehicle");
+	//Log("RPC: DetachTrailerFromVehicle");
 }
 
 void ScrSetPlayerShopName(RPCParameters* rpcParams)
 {
-	Log("RPC: SetPlayerShopName");
+	//Log("RPC: SetPlayerShopName");
 }
 
 void ScrSetPlayerSkillLevel(RPCParameters* rpcParams)
 {
-	Log("RPC: SetPlayerSkillLevel");
+	//Log("RPC: SetPlayerSkillLevel");
 }
 
 void ScrShowPlayerNameTagForPlayer(RPCParameters* rpcParams)
 {
-	Log("RPC: ShowPlayerNameTagForPlayer");
+	//Log("RPC: ShowPlayerNameTagForPlayer");
 }
 
 void ScrChatBubble(RPCParameters* rpcParams)
 {
 	Log("RPC: ChatBubble");
+
+	unsigned char* Data = reinterpret_cast<unsigned char *>(rpcParams->input);
+	int iBitLength = rpcParams->numberOfBitsOfData;
+	PlayerID sender = rpcParams->sender;
+
+	RakNet::BitStream bsData((unsigned char*)Data,(iBitLength/8)+1,false);
+
+	uint16_t playerId;
+	uint32_t color;
+	float distance;
+	int duration;
+	char* message;
+
+	bsData.Read(playerId);
+	bsData.Read(color);
+	bsData.Read(distance);
+	bsData.Read(duration);
+	bsData.Read(message);
+
+	//Log("> Player ID: %d | Bubble msg: %s", playerId, message);
+	// допилить
 }
 
 void ScrToggleClock(RPCParameters* rpcParams)
 {
-	Log("RPC: ToggleClock");
+	//Log("RPC: ToggleClock");
 }
 
 void ScrSetPlayerWorldBounds(RPCParameters *rpcParams)
 {
-	Log("RPC: SetPlayerWorldBounds");
+	//Log("RPC: SetPlayerWorldBounds");
 }
 
 void ScrSetWeaponAmmo(RPCParameters *rpcParams)
 {
-	Log("RPC: SetWeaponAmmo");
+	//Log("RPC: SetWeaponAmmo");
 }
 
 void RegisterScriptRPCs(RakClientInterface* pRakClient)
@@ -1344,12 +1468,6 @@ void RegisterScriptRPCs(RakClientInterface* pRakClient)
 	Log("Registering ScriptRPC's..");
 
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrSetWeaponAmmo, ScrSetWeaponAmmo);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrSetPlayerWorldBounds, ScrSetPlayerWorldBounds);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrToggleClock, ScrToggleClock);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrChatBubble, ScrChatBubble);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrShowPlayerNameTagForPlayer, ScrShowPlayerNameTagForPlayer);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrSetPlayerShopName, ScrSetPlayerShopName);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrSetPlayerSkillLevel, ScrSetPlayerSkillLevel);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrAttachCameraToObject, ScrAttachCameraToObject);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrAttachTrailerToVehicle, ScrAttachTrailerToVehicle);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrDetachTrailerFromVehicle, ScrDetachTrailerFromVehicle);
@@ -1437,12 +1555,6 @@ void UnRegisterScriptRPCs(RakClientInterface* pRakClient)
 	Log("Unregistering ScriptRPC's..");
 
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrSetWeaponAmmo);
-	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrSetPlayerWorldBounds);
-	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrToggleClock);
-	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrChatBubble);
-	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrShowPlayerNameTagForPlayer);
-	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrSetPlayerShopName);
-	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrSetPlayerSkillLevel);
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrAttachCameraToObject);
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrAttachTrailerToVehicle);
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrDetachTrailerFromVehicle);

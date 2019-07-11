@@ -52,4 +52,5 @@ private:
 	CRemotePlayer	*m_pPlayers[MAX_PLAYERS];
 	bool			m_bPlayerSlotState[MAX_PLAYERS];
 	char			m_szPlayerNames[MAX_PLAYERS][MAX_PLAYER_NAME+1];
+
 };

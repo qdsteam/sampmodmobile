@@ -45,8 +45,6 @@ void CRemotePlayer::Process()
 	MATRIX4X4 matPlayer, matVehicle;
 	VECTOR vecMoveSpeed;
 
-
-
 	if(IsActive())
 	{
 		// ---- ONFOOT NETWORK PROCESSING ----
@@ -55,18 +53,17 @@ void CRemotePlayer::Process()
 		{
 			UpdateOnFootPositionAndSpeed(&m_ofSync.vecPos, &m_ofSync.vecMoveSpeed);
 			UpdateOnFootTargetPosition();
-			GetPlayerPed()->GiveWeapon(m_ofSync.byteCurrentWeapon, 9999);
 
-			if(m_pPlayerPed->IsAdded() && m_pPlayerPed->GetCurrentWeapon() != m_ofSync.byteCurrentWeapon) {
+			m_pPlayerPed->GiveWeapon(m_ofSync.byteCurrentWeapon, 9999);
+
+			if(m_pPlayerPed->IsAdded() && m_pPlayerPed->GetCurrentWeapon() != m_ofSync.byteCurrentWeapon) 
+			{
   				m_pPlayerPed->GiveWeapon(m_ofSync.byteCurrentWeapon, 9999);
+
   				if(m_pPlayerPed->GetCurrentWeapon() != m_ofSync.byteCurrentWeapon) 
   					m_pPlayerPed->GiveWeapon(m_ofSync.byteCurrentWeapon, 9999);
   			}
-		}
-
-
-
-		else if(GetState() == PLAYER_STATE_DRIVER &&
+		} else if(GetState() == PLAYER_STATE_DRIVER &&
 			m_byteUpdateFromNetwork == UPDATE_TYPE_INCAR && m_pPlayerPed->IsInVehicle())
 		{
 			if(!m_pCurrentVehicle || !GamePool_Vehicle_GetAt(m_pCurrentVehicle->m_dwGTAId))
@@ -513,8 +510,7 @@ void CRemotePlayer::StoreOnFootFullSyncData(ONFOOT_SYNC_DATA *pofSync, uint32_t 
 
 		m_byteCurrentWeapon = pofSync->byteCurrentWeapon;
 
-		if (m_byteCurrentWeapon)
-			NOP(g_libGTASA+0x434D94, 6);
+		if (m_byteCurrentWeapon) NOP(g_libGTASA+0x434D94, 6);
 		
 
 		m_byteUpdateFromNetwork = UPDATE_TYPE_ONFOOT;

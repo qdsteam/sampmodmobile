@@ -46,17 +46,6 @@ void CVehiclePool::Process()
 						continue;
 				}
 
-				if(!ScriptCommand(&is_car_engine_on, pLocalPlayer->GetPlayerPed()->GetCurrentVehicleID()))
-				{
-					ScriptCommand(&turn_car_engine, pLocalPlayer->GetPlayerPed()->GetCurrentVehicleID(), 1);
-					ScriptCommand(&freeze_car_position, pLocalPlayer->GetPlayerPed()->GetCurrentVehicleID(), 1);
-					ScriptCommand(&freeze_car_position_and_dont_load_collision, pLocalPlayer->GetPlayerPed()->GetCurrentVehicleID(), 1);
-				}else{
-					ScriptCommand(&turn_car_engine, pLocalPlayer->GetPlayerPed()->GetCurrentVehicleID(), 0);
-					ScriptCommand(&freeze_car_position, pLocalPlayer->GetPlayerPed()->GetCurrentVehicleID(), 0);
-					ScriptCommand(&freeze_car_position_and_dont_load_collision, pLocalPlayer->GetPlayerPed()->GetCurrentVehicleID(), 0);
-				}
-
 				if(pVehicle->GetVehicleSubtype() != VEHICLE_SUBTYPE_BOAT &&
 					pVehicle->GetDistanceFromLocalPlayerPed() < 200.0f &&
 					pVehicle->HasSunk())

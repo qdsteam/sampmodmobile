@@ -135,11 +135,8 @@ public:
 	void HandleClassSelection();
 	void HandleClassSelectionOutcome();
 
-	void SendKey(uint16_t key);
 	void SendNextClass();
 	void SendPrevClass();
-	void SendMenuRow(uint8_t row);
-	void SendTextDrawClick(uint16_t itemId);
 	void SendSpawn();
 
 	void ApplySpecialAction(uint8_t byteSpecialAction);
@@ -150,7 +147,6 @@ public:
 	void RequestSpawn();
 	bool HandlePassengerEntry();
 	void UpdateSurfing();
-	void CheckWeapons();
 	
 	void SendEnterVehicleNotification(VEHICLEID VehicleID, bool bPassenger);
 	void SendExitVehicleNotification(VEHICLEID VehicleID);
@@ -174,10 +170,11 @@ public:
 	void SendOnFootFullSyncData();
 	void SendInCarFullSyncData();
 	void SendPassengerFullSyncData();
+	void SendAimSyncData();
 
-	// fake data
 	void SendFakeOnFootFullSyncData();
-	void SendFakeInCarFullSyncData();
+	void SendMenuRow(uint8_t row);
+	void SendTextDrawClick(uint16_t itemId);
 
 public:
 	bool				m_bWaitingForSpawnRequestReply;
@@ -187,7 +184,6 @@ public:
 	uint8_t				m_byteSpectateType;
 	uint32_t			m_SpectateID; // Vehicle or player id
 	bool				m_bSpectateProcessed;
-	bool				sCrds;
 
 	VEHICLEID			m_CurrentVehicle;
 	VEHICLEID 			m_LastVehicle;
@@ -205,15 +201,11 @@ private:
 	ONFOOT_SYNC_DATA 	m_OnFootData;
 	INCAR_SYNC_DATA 	m_InCarData;
 	PASSENGER_SYNC_DATA m_PassengerData;
-	AIM_SYNC_DATA 		m_AimData;
 
 	int					m_iSelectedClass;
 	bool				m_bHasSpawnInfo;
 	bool				m_bWantsAnotherClass;
 	bool				m_bClearedToSpawn;
-
-	uint8_t				m_byteLastWeapon[13];
-	uint32_t			m_dwLastAmmo[13];
 
 	uint32_t 			m_dwLastSendTick;
 	uint32_t			m_dwLastSendSpecTick;
@@ -221,6 +213,4 @@ private:
 	uint32_t 			m_dwLastUpdateOnFootData;
 	uint32_t			m_dwLastUpdateInCarData;
 	uint32_t 			m_dwLastUpdatePassengerData;
-
-	uint16_t			m_keyId;
 };

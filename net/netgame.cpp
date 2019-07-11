@@ -11,7 +11,7 @@
 #include "checkfilehash.h"
 
 #define NETGAME_VERSION 4057
-#define AUTH_BS "39FB2DEEDB49ACFB8D4EECE6953D2507988CCCF4410"
+#define AUTH_BS "15121F6F18550C00AC4B4F8A167D0379BB0ACA99043"
 
 extern CGame *pGame;
 extern CSpawnScreen *pSpawnScreen;
@@ -146,12 +146,6 @@ void CNetGame::Process()
 	if(m_bHoldTime && pModSAWindow->lock_time != 1)
 		pGame->SetWorldTime(m_byteWorldTime, m_byteWorldMinute);
 
-	if(!pGame->IsAnimationLoaded("PARACHUTE")) 
-		pGame->RequestAnimation("PARACHUTE");
-				
-	if(!pGame->IsModelLoaded(OBJECT_PARACHUTE))
-		pGame->RequestModel(OBJECT_PARACHUTE);
-
 	// keep the throwable weapon models loaded
 	if (!pGame->IsModelLoaded(WEAPON_MODEL_TEARGAS))
 		pGame->RequestModel(WEAPON_MODEL_TEARGAS);
@@ -283,10 +277,6 @@ void CNetGame::UpdateNetwork()
 
 			case ID_MARKERS_SYNC:
 			Packet_MarkersSync(pkt);
-			break;
-
-			case ID_WEAPONS_UPDATE:
-			Packet_WeaponsUpdate(pkt);
 			break;
 		}
 
@@ -497,30 +487,6 @@ void CNetGame::Packet_ConnectionLost(Packet* pkt)
 	}
 
 	SetGameState(GAMESTATE_WAIT_CONNECT);
-}
-
-void CNetGame::Packet_WeaponsUpdate(Packet *pkt)
-{
-	RakNet::BitStream bsData(pkt->data, pkt->length, false);
-	CPlayerPool *pPlayerPool = GetPlayerPool();
-	PLAYERID bytePlayerID;
-
-	uint8_t byteLength = (pkt->length - 1) / 4;
-	
-	uint8_t byteIndex;
-	uint8_t byteWeapon = GetPlayerPool()->GetLocalPlayer()->GetPlayerPed()->m_byteCurrentWeapon;
-	uint8_t wordAmmo;
-	
-	if (pPlayerPool)
-	{
-		if (pPlayerPool->GetSlotState(bytePlayerID))
-		{
-			CLocalPlayer* pPlayerPool = GetPlayerPool()->GetLocalPlayer();
-			bsData.Read(byteIndex);
-			bsData.Read(byteWeapon);
-			bsData.Read(wordAmmo);
-		}
-	}
 }
 
 void CNetGame::Packet_ConnectionSucceeded(Packet* pkt)

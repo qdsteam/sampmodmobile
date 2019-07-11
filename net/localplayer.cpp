@@ -1,13 +1,11 @@
-#include "../main.h"
-#include "../game/game.h"
+#include "main.h"
+#include "game/game.h"
 #include "netgame.h"
-#include "../spawnscreen.h"
+#include "spawnscreen.h"
 #include "../modsa.h"
-#include "../chatwindow.h"
-#include "extrakeyboard.h"
+#include "../extrakeyboard.h"
 
-#include "../chatwindow.h"
-#include "../util/armhook.h"
+#include "util/armhook.h"
 
 extern CGame *pGame;
 extern CNetGame *pNetGame;
@@ -20,9 +18,6 @@ bool bFirstSpawn = true;
 extern int iNetModeNormalOnfootSendRate;
 extern int iNetModeNormalInCarSendRate;
 extern bool bUsedPlayerSlots[];
-
-#define IS_TARGETING(x) (x & 128)
-#define IS_FIRING(x) (x & 4)
 
 CLocalPlayer::CLocalPlayer()
 {
@@ -48,12 +43,6 @@ CLocalPlayer::CLocalPlayer()
 
 	m_CurrentVehicle = 0;
 	ResetAllSyncAttributes();
-
-	for (int i = 0; i < 13; i++)
-	{
-		m_byteLastWeapon[i] = 0;
-		m_dwLastAmmo[i] = 0;
-	}
 
 	m_bIsSpectating = false;
 	m_byteSpectateType = SPECTATE_TYPE_NONE;
@@ -85,7 +74,6 @@ bool CLocalPlayer::Process()
 
 			// reset tasks/anims
 			m_pPlayerPed->TogglePlayerControllable(true);
-			
 
 			if(m_pPlayerPed->IsInVehicle() && !m_pPlayerPed->IsAPassenger())
 			{
@@ -103,7 +91,8 @@ bool CLocalPlayer::Process()
 
 		// server checkpoints update
 		pGame->UpdateCheckpoints();
-		// server weapons update
+
+		// current weapon update
 		uint8_t curwap = GetPlayerPed()->GetCurrentCharWeapon();
 		GetPlayerPed()->m_byteCurrentWeapon = curwap;
 
@@ -177,6 +166,7 @@ bool CLocalPlayer::Process()
 			}
 		}
 
+
 		// handle interior changing
 		uint8_t byteInterior = pGame->GetActiveInterior();
 		if(byteInterior != m_byteCurInterior)
@@ -237,10 +227,6 @@ bool CLocalPlayer::Process()
 		return true;
 	}
 
-	uint16_t lrAnalog,udAnalog;
-	uint16_t wKeys = m_pPlayerPed->GetKeys(&lrAnalog,&udAnalog);
-			
-
 	// handle needs to respawn
 	if(m_bIsWasted && (m_pPlayerPed->GetActionTrigger() != ACTION_WASTED) && 
 		(m_pPlayerPed->GetActionTrigger() != ACTION_DEATH) )
@@ -264,23 +250,13 @@ bool CLocalPlayer::Process()
 	return true;
 }
 
-void CLocalPlayer::CheckWeapons()
-{
-	if (m_pPlayerPed->IsInVehicle()) return;
-	uint8_t byteCurrentWeapon = m_pPlayerPed->GetCurrentWeapon();
-
-	RakNet::BitStream bsWeapons;
-	bsWeapons.Write((uint8_t)ID_WEAPONS_UPDATE);
-	uint8_t curwep = GetPlayerPed()->m_byteCurrentWeapon;
-	bsWeapons.Write((uint8_t)curwep);
-	pNetGame->GetRakClient()->Send(&bsWeapons, HIGH_PRIORITY, UNRELIABLE, 0);
-}
-
 void CLocalPlayer::SendWastedNotification()
 {
 	RakNet::BitStream bsPlayerDeath;
 	uint8_t byteDeathReason = 0;
 	PLAYERID WhoWasResponsible = INVALID_PLAYER_ID;
+	
+	//m_pPlayerPed->FindDeathReasonAndResponsiblePlayer(&WhoWasResponsible);
 
 	bsPlayerDeath.Write(byteDeathReason);
 	bsPlayerDeath.Write(WhoWasResponsible);
@@ -298,17 +274,9 @@ void CLocalPlayer::HandleClassSelection()
 		m_pPlayerPed->TogglePlayerControllable(0);
 	}
 	
-	if(pModSAWindow->extOS != 1)
-	{
-		if(!m_bIsSpectating){
-			RequestClass(m_iSelectedClass);
-			pSpawnScreen->Show(true);
-		}
-	}else{
-		RequestClass(m_iSelectedClass);
-		pSpawnScreen->Show(true);
-	}
-	
+	RequestClass(m_iSelectedClass);
+	pSpawnScreen->Show(true);
+
 	return;
 }
 
@@ -342,7 +310,7 @@ void CLocalPlayer::SendPrevClass()
 	m_pPlayerPed->GetMatrix(&matPlayer);
 	
 	if(m_iSelectedClass == 0) m_iSelectedClass = (pNetGame->m_iSpawnsAvailable - 1);
-		else m_iSelectedClass--;		
+	else m_iSelectedClass--;		
 
 	pGame->PlaySound(1053,matPlayer.pos.X,matPlayer.pos.Y,matPlayer.pos.Z);
 	RequestClass(m_iSelectedClass);
@@ -354,25 +322,13 @@ void CLocalPlayer::SendSpawn()
 	m_bWaitingForSpawnRequestReply = true;
 }
 
-void CLocalPlayer::SendMenuRow(uint8_t row)
-{
-	RakNet::BitStream bsSend;
-	bsSend.Write(row);
-	pNetGame->GetRakClient()->RPC(&RPC_MenuSelect, &bsSend, HIGH_PRIORITY, RELIABLE, 0, false, UNASSIGNED_NETWORK_ID, NULL);
-}
-
-void CLocalPlayer::SendTextDrawClick(uint16_t itemId)
-{
-	RakNet::BitStream bsSend;
-	bsSend.Write(itemId);
-	pNetGame->GetRakClient()->RPC(&RPC_ClickTextDraw, &bsSend, HIGH_PRIORITY, RELIABLE, 0, false, UNASSIGNED_NETWORK_ID, NULL);
-}
-
 void CLocalPlayer::RequestClass(int iClass)
 {
 	RakNet::BitStream bsSpawnRequest;
 	bsSpawnRequest.Write(iClass);
-	pNetGame->GetRakClient()->RPC(&RPC_RequestClass, &bsSpawnRequest, HIGH_PRIORITY, RELIABLE, 0, false, UNASSIGNED_NETWORK_ID, 0);
+
+	if(!m_bIsSpectating)
+		pNetGame->GetRakClient()->RPC(&RPC_RequestClass, &bsSpawnRequest, HIGH_PRIORITY, RELIABLE, 0, false, UNASSIGNED_NETWORK_ID, 0);
 }
 
 void CLocalPlayer::RequestSpawn()
@@ -399,7 +355,6 @@ bool CLocalPlayer::HandlePassengerEntry()
 			if(pVehicle->GetDistanceFromLocalPlayerPed() < 4.0f)
 			{
 				m_pPlayerPed->EnterVehicle(pVehicle->m_dwGTAId, true);
-
 				SendEnterVehicleNotification(ClosetVehicleID, true);
 				m_dwPassengerEnterExit = GetTickCount();
 				return true;
@@ -412,9 +367,7 @@ bool CLocalPlayer::HandlePassengerEntry()
 
 
 
-void CLocalPlayer::UpdateSurfing()
-{	
-};
+void CLocalPlayer::UpdateSurfing() {};
 
 void CLocalPlayer::SendEnterVehicleNotification(VEHICLEID VehicleID, bool bPassenger)
 {
@@ -426,11 +379,8 @@ void CLocalPlayer::SendEnterVehicleNotification(VEHICLEID VehicleID, bool bPasse
 
 	bsSend.Write(VehicleID);
 	bsSend.Write(bytePassenger);
-	
-	SendOnFootFullSyncData();
 
-	if(pModSAWindow->m_bEV != 1)
-		pNetGame->GetRakClient()->RPC(&RPC_EnterVehicle, &bsSend, HIGH_PRIORITY, RELIABLE_SEQUENCED, 0, false, UNASSIGNED_NETWORK_ID, nullptr);
+	pNetGame->GetRakClient()->RPC(&RPC_EnterVehicle, &bsSend, HIGH_PRIORITY, RELIABLE_SEQUENCED, 0,false, UNASSIGNED_NETWORK_ID, nullptr);
 }
 
 void CLocalPlayer::SendExitVehicleNotification(VEHICLEID VehicleID)
@@ -492,7 +442,6 @@ bool CLocalPlayer::Spawn()
 	m_pPlayerPed->ClearAllWeapons();
 	m_pPlayerPed->ResetDamageEntity();
 
-
 	pGame->DisableTrainTraffic();
 
 	// CCamera::Fade
@@ -529,31 +478,9 @@ void CLocalPlayer::ApplySpecialAction(uint8_t byteSpecialAction)
 	switch(byteSpecialAction)
 	{
 		case SPECIAL_ACTION_NONE:
-
-		break;
-
-		case SPECIAL_ACTION_CARRY:
-
-		break;
-
-		case SPECIAL_ACTION_DUCK:
-
-		break;
-
-		case SPECIAL_ACTION_CUFFED:
-
-		break;
-
-		case SPECIAL_ACTION_ENTER_VEHICLE:
-
-		break;
-
-		case SPECIAL_ACTION_EXIT_VEHICLE:
-
 		break;
 
 		case SPECIAL_ACTION_USEJETPACK:
-
 		break;
 	}
 }
@@ -581,11 +508,6 @@ uint8_t CLocalPlayer::DetermineNumberOfPlayersInLocalRange()
 	return iNumPlayersInRange;
 }
 
-void CLocalPlayer::SendKey(uint16_t key)
-{
-	uint16_t wKeys = key;
-}
-
 void CLocalPlayer::SendOnFootFullSyncData()
 {
 	RakNet::BitStream bsPlayerSync;
@@ -602,27 +524,9 @@ void CLocalPlayer::SendOnFootFullSyncData()
 	ofSync.lrAnalog = lrAnalog;
 	ofSync.udAnalog = udAnalog;
 	ofSync.wKeys = wKeys;
-
-	//Log("Key pressed - %d", wKeys);
-
-	if(pModSAWindow->m_bINVIS == 1)
-	{ // hide player
-		ofSync.vecPos.X = matPlayer.pos.X;
-		ofSync.vecPos.Y = matPlayer.pos.Y;
-		ofSync.vecPos.Z = matPlayer.pos.Z - 4.25;
-	}else{ // show player
-		if(pModSAWindow->m_bGPP != 1)
-		{
-			ofSync.vecPos.X = matPlayer.pos.X;
-			ofSync.vecPos.Y = matPlayer.pos.Y;
-			ofSync.vecPos.Z = matPlayer.pos.Z;
-		}else{
-			// fake data
-			ofSync.vecPos.X = pModSAWindow->sx;
-			ofSync.vecPos.Y = pModSAWindow->sy;
-			ofSync.vecPos.Z = pModSAWindow->sz - 4.25;
-		}
-	}
+	ofSync.vecPos.X = matPlayer.pos.X;
+	ofSync.vecPos.Y = matPlayer.pos.Y;
+	ofSync.vecPos.Z = matPlayer.pos.Z;
 
 	ofSync.quat.SetFromMatrix(matPlayer);
 	ofSync.quat.Normalize();
@@ -637,7 +541,6 @@ void CLocalPlayer::SendOnFootFullSyncData()
 
 	ofSync.byteHealth = (uint8_t)m_pPlayerPed->GetHealth();
 	ofSync.byteArmour = (uint8_t)m_pPlayerPed->GetArmour();
-
 	ofSync.byteCurrentWeapon = (uint8_t)m_pPlayerPed->GetCurrentWeapon();
 	ofSync.byteSpecialAction = 0;
 
@@ -662,6 +565,20 @@ void CLocalPlayer::SendOnFootFullSyncData()
 
 		memcpy(&m_OnFootData, &ofSync, sizeof(ONFOOT_SYNC_DATA));
 	}
+}
+
+void CLocalPlayer::SendMenuRow(uint8_t row)
+{
+	RakNet::BitStream bsSend;
+	bsSend.Write(row);
+	pNetGame->GetRakClient()->RPC(&RPC_MenuSelect, &bsSend, HIGH_PRIORITY, RELIABLE, 0, false, UNASSIGNED_NETWORK_ID, NULL);
+}
+
+void CLocalPlayer::SendTextDrawClick(uint16_t itemId)
+{
+	RakNet::BitStream bsSend;
+	bsSend.Write(itemId);
+	pNetGame->GetRakClient()->RPC(&RPC_ClickTextDraw, &bsSend, HIGH_PRIORITY, RELIABLE, 0, false, UNASSIGNED_NETWORK_ID, NULL);
 }
 
 void CLocalPlayer::SendFakeOnFootFullSyncData()
@@ -800,6 +717,9 @@ void CLocalPlayer::SendInCarFullSyncData()
 		icSync.bytePlayerHealth = (uint8_t)m_pPlayerPed->GetHealth();
 		icSync.bytePlayerArmour = (uint8_t)m_pPlayerPed->GetArmour();
 
+		//icSync.byteSirenOn = pVehicle->IsSirenOn() != 0;
+		//icSync.byteLandingGearState = pVehicle->GetLandingGearState() != 0;
+
 		// send
 		if( (GetTickCount() - m_dwLastUpdateInCarData) > 500 || memcmp(&m_InCarData, &icSync, sizeof(INCAR_SYNC_DATA)))
 		{
@@ -812,11 +732,6 @@ void CLocalPlayer::SendInCarFullSyncData()
 			memcpy(&m_InCarData, &icSync, sizeof(INCAR_SYNC_DATA));
 		}
 	}
-}
-
-void CLocalPlayer::SendFakeInCarFullSyncData()
-{
-	// допилить
 }
 
 void CLocalPlayer::SendPassengerFullSyncData()
@@ -840,9 +755,9 @@ void CLocalPlayer::SendPassengerFullSyncData()
 	psSync.bytePlayerArmour = (uint8_t)m_pPlayerPed->GetArmour();
 
 	psSync.byteSeatFlags = m_pPlayerPed->GetVehicleSeatID();
-	psSync.byteDriveBy = 0;
+	psSync.byteDriveBy = 0;//m_bPassengerDriveByMode;
 
-	psSync.byteCurrentWeapon = m_pPlayerPed->GetCurrentWeapon();
+	psSync.byteCurrentWeapon = 0;//m_pPlayerPed->GetCurrentWeapon();
 
 	m_pPlayerPed->GetMatrix(&mat);
 	psSync.vecPos.X = mat.pos.X;
@@ -860,6 +775,10 @@ void CLocalPlayer::SendPassengerFullSyncData()
 
 		memcpy(&m_PassengerData, &psSync, sizeof(PASSENGER_SYNC_DATA));
 	}
+}
+
+void CLocalPlayer::SendAimSyncData()
+{
 }
 
 void CLocalPlayer::ProcessSpectating()
@@ -894,6 +813,7 @@ void CLocalPlayer::ProcessSpectating()
 		if((GetTickCount() - m_dwLastSendAimTick) > (GetOptimumOnFootSendRate() * 2))
 		{
 			m_dwLastSendAimTick = GetTickCount();
+			SendAimSyncData();
 		}
 	}
 

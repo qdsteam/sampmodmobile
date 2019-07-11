@@ -1,6 +1,9 @@
 #include "main.h"
 #include "game/game.h"
 #include "netgame.h"
+#include "../playerslist.h"
+
+extern CPlayersList *pPlayersList;
 
 CPlayerPool::CPlayerPool()
 {

@@ -525,7 +525,7 @@ void ExitVehicle(RPCParameters *rpcParams)
 	}	
 }
 
-void PlayerGiveTakeDamage(RPCParameters *rpcParams)
+/*void PlayerGiveTakeDamage(RPCParameters *rpcParams)
 {
 	Log("RPC: PlayerGiveTakeDamage");
 	unsigned char * Data = reinterpret_cast<unsigned char *>(rpcParams->input);
@@ -552,7 +552,7 @@ void PlayerGiveTakeDamage(RPCParameters *rpcParams)
 	}
 
 	//pNetGame->GetRakClient()->RPC(&RPC_PlayerGiveTakeDamage, &bsData, HIGH_PRIORITY, RELIABLE_SEQUENCED, 0, false, UNASSIGNED_NETWORK_ID, NULL);
-}
+}*/
 
 void DialogBox(RPCParameters *rpcParams)
 {
@@ -670,7 +670,7 @@ void Pickup(RPCParameters *rpcParams)
 
 void DestroyPickup(RPCParameters *rpcParams)
 {
-	Log("RPC_DESTROYPICKUP");
+	Log("RPC: DestroyPickup");
 
 	unsigned char * Data = reinterpret_cast<unsigned char *>(rpcParams->input);
 	int iBitLength = rpcParams->numberOfBitsOfData;
@@ -791,7 +791,7 @@ void RegisterRPCs(RakClientInterface* pRakClient)
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ScrDialogBox, DialogBox);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_GameModeRestart, GameModeRestart);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_ConnectionRejected, ConnectionRejected);
-	pRakClient->RegisterAsRemoteProcedureCall(&RPC_PlayerGiveTakeDamage, PlayerGiveTakeDamage);
+	//pRakClient->RegisterAsRemoteProcedureCall(&RPC_PlayerGiveTakeDamage, PlayerGiveTakeDamage);
 
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_Pickup, Pickup);
 	pRakClient->RegisterAsRemoteProcedureCall(&RPC_DestroyPickup, DestroyPickup);
@@ -826,7 +826,7 @@ void UnRegisterRPCs(RakClientInterface* pRakClient)
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrDialogBox);
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_GameModeRestart);
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ConnectionRejected);
-	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_PlayerGiveTakeDamage);
+	//pRakClient->UnregisterAsRemoteProcedureCall(&RPC_PlayerGiveTakeDamage);
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_Pickup);
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_DestroyPickup);
 	pRakClient->UnregisterAsRemoteProcedureCall(&RPC_ScrCreate3DTextLabel);
