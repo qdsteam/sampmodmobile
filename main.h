@@ -12,11 +12,14 @@
 #include "util/util.h"
 
 #define SAMP_VERSION	"0.3.7"
-#define MODSA_VERSION	"0.0.0.3"
+#define MODSA_VERSION	"0.0.0.4"
+#define MODSA_VERCLR	"Green"
 
 #define ADDRZERO "93.170.76.34"
 #define ADDRONE "37.143.12.132"
 #define ADDRTWO "37.230.139.49"
+#define ADDRFOUR "game.samp-mobile.com"
+#define ADDRLOC "192.168.0.42"
 
 #define MAX_PLAYERS		1004
 #define MAX_VEHICLES	2000

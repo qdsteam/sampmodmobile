@@ -4,11 +4,13 @@
 #include "gui/gui.h"
 #include "vendor/imgui/imgui_internal.h"
 #include "keyboard.h"
-#include <stdlib.h>
-#include <string.h>
 #include "sets.h"
 #include "servers.h"
 #include "settings.h"
+#include "modsa.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 extern CGUI *pGUI;
 extern CGame *pGame;
@@ -16,6 +18,7 @@ extern CNetGame *pNetGame;
 extern CKeyBoard *pKeyBoard;
 extern CServersWindow *pServersWindow;
 extern CSettings *pSettings;
+extern CModSAWindow *pModSAWindow;
 
 char szUsernameInputBuffer[100];
 char utf8UsernameInputBuffer[100*3];
@@ -39,6 +42,12 @@ void CSetsWindow::Show(bool bShow)
 		pGame->FindPlayerPed()->TogglePlayerControllable(false);
 
 	m_bIsActive = bShow;
+
+	if(bShow != false) 
+	{
+		sprintf(utf8UsernameInputBuffer, "%s", pSettings->Get().szNickName);
+		sprintf(szUsernameInputBuffer, "%s", pSettings->Get().szNickName);
+	}
 }
 
 void CSetsWindow::Clear()
@@ -79,44 +88,72 @@ void CSetsWindow::Render()
 	ImGui::Begin("> Server Properties", nullptr, 
 		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize);
 
-		ImGui::Text("Name:");
+		ImGui::Text("Введите свой игровой никнейм");
 
-		if( ImGui::Button(utf8UsernameInputBuffer, ImVec2(555, 50) ))
+		ImGui::ItemSize( ImVec2(0, pGUI->GetFontSize()/2 + 2.5) );
+
+		if( ImGui::Button(utf8UsernameInputBuffer, ImVec2((555 - 125), 50) ))
 		{
 			pKeyBoard->Open(&SetsWindowInputHandler);
 		}
 
-		ImGui::ItemSize( ImVec2(0, pGUI->GetFontSize()/2 + 5) );
-
-		ImGui::Text("Server Password:");
-
-		if( ImGui::Button(utf8PasswordInputBuffer, ImVec2(555, 50) ))
+		ImGui::SameLine(0, pGUI->GetFontSize() - 10.5);
+		
+		if(ImGui::Button("Импорт", ImVec2(125, 50)))
 		{
-			pKeyBoard->Open(&SetsWindowInputHandlerTwo);
+			sprintf(utf8UsernameInputBuffer, "%s", pSettings->Get().szNickName);
+			sprintf(szUsernameInputBuffer, "%s", pSettings->Get().szNickName);
 		}
 
 		ImGui::ItemSize( ImVec2(0, pGUI->GetFontSize()/2 + 5) );
 		
 		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 278 + ImGui::GetStyle().ItemSpacing.x) / 2);
 
-		if(ImGui::Button("Apply", ImVec2(125, 50)))
+		if(ImGui::Button("Далее", ImVec2(125, 50)))
 		{
-			username = szUsernameInputBuffer;
-			password = szPasswordInputBuffer;
-			pServersWindow->m_bMenuStep = 1;
-			pServersWindow->Show(true);
-			Show(false);
+			if(strlen(utf8UsernameInputBuffer) >= 3)
+			{
+				username = szUsernameInputBuffer;
+				password = szPasswordInputBuffer;
+				
+				unsigned short port = 7777;
+        		pModSAWindow->extOS = 0;
+	
+        		char *address = ADDRFOUR;//ADDRLOC;
+	
+        		pNetGame = new CNetGame(address, port, username, password);
+	
+        		Show(false);
+	
+        		pModSAWindow->protect = 1;
+        		if(pGame) 
+        		    pGame->FindPlayerPed()->TogglePlayerControllable(true);
+        	}else{
+        		sprintf(utf8UsernameInputBuffer, "%s", pSettings->Get().szNickName);
+				sprintf(szUsernameInputBuffer, "%s", pSettings->Get().szNickName);
+				username = szUsernameInputBuffer;
+				password = szPasswordInputBuffer;
+				
+				unsigned short port = 7777;
+        		pModSAWindow->extOS = 0;
+	
+        		char *address = ADDRFOUR;
+	
+        		pNetGame = new CNetGame(address, port, username, password);
+	
+        		Show(false);
+	
+        		pModSAWindow->protect = 1;
+        		if(pGame) 
+        		    pGame->FindPlayerPed()->TogglePlayerControllable(true);
+        	}
 		}
 
 		ImGui::SameLine(0, pGUI->GetFontSize());
 		
-		if(ImGui::Button("Skip", ImVec2(125, 50)))
+		if(ImGui::Button("Выйти", ImVec2(125, 50)))
 		{
-			username = pSettings->Get().szNickName;
-			password = pSettings->Get().szPassword;
-			pServersWindow->m_bMenuStep = 1;
-			pServersWindow->Show(true);
-			Show(false);
+			exit(0);
 		}
 
 	ImGui::SetWindowSize(ImVec2(-1, -1));

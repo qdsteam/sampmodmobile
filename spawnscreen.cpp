@@ -14,14 +14,14 @@ extern CSettings *pSettings;
 
 CSpawnScreen::CSpawnScreen()
 {
-	Log("Initializing Spawn Screen..");
+	//Log("Initializing Spawn Screen..");
 	m_fPosX = pGUI->ScaleX( pSettings->Get().fSpawnScreenPosX );
 	m_fPosY = pGUI->ScaleY( pSettings->Get().fSpawnScreenPosY );
 	m_fSizeX = pGUI->ScaleX( pSettings->Get().fSpawnScreenSizeX );
 	m_fSizeY = pGUI->ScaleY( pSettings->Get().fSpawnScreenSizeY );
 	m_fButWidth = m_fSizeX / 3;
 	m_fButHeight = m_fSizeY * 0.9;
-	Log("Spawn Screen pos: %f, %f, size: %f, %f", m_fPosX, m_fPosY, m_fSizeX, m_fSizeY);
+	//Log("Spawn Screen pos: %f, %f, size: %f, %f", m_fPosX, m_fPosY, m_fSizeX, m_fSizeY);
 
 	m_bEnabled = false;
 }

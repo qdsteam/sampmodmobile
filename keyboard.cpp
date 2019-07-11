@@ -79,8 +79,45 @@ void CKeyBoard::Render()
 	{
 		ImGui::GetOverlayDrawList()->AddText(pGUI->GetFont(), m_fFontSize, ImVec2(m_Pos.x + m_Size.x * 0.02, m_Pos.y + m_Pos.y * 0.05), 0xFFFFFFFF, m_utf8Input);
 	}else{
-		char p[4096];
-		sprintf(p, "> Count: %d", strlen(m_utf8Input));
+		char ps[4096];
+		char* p;
+
+		// pyramid of Cheops LOL
+		if(strlen(m_utf8Input) == 0)p = "";
+		if(strlen(m_utf8Input) == 1)p = "*";
+		if(strlen(m_utf8Input) == 2)p = "**";
+		if(strlen(m_utf8Input) == 3)p = "***";
+		if(strlen(m_utf8Input) == 4)p = "****";
+		if(strlen(m_utf8Input) == 5)p = "*****";
+		if(strlen(m_utf8Input) == 6)p = "******";
+		if(strlen(m_utf8Input) == 7)p = "*******";
+		if(strlen(m_utf8Input) == 8)p = "********";
+		if(strlen(m_utf8Input) == 9)p = "*********";
+		if(strlen(m_utf8Input) == 10)p = "**********";
+		if(strlen(m_utf8Input) == 11)p = "***********";
+		if(strlen(m_utf8Input) == 12)p = "************";
+		if(strlen(m_utf8Input) == 13)p = "*************";
+		if(strlen(m_utf8Input) == 14)p = "**************";
+		if(strlen(m_utf8Input) == 15)p = "***************";
+		if(strlen(m_utf8Input) == 16)p = "****************";
+		if(strlen(m_utf8Input) == 17)p = "*****************";
+		if(strlen(m_utf8Input) == 18)p = "******************";
+		if(strlen(m_utf8Input) == 19)p = "*******************";
+		if(strlen(m_utf8Input) == 20)p = "********************";
+		if(strlen(m_utf8Input) == 21)p = "*********************";
+		if(strlen(m_utf8Input) == 22)p = "**********************";
+		if(strlen(m_utf8Input) == 23)p = "***********************";
+		if(strlen(m_utf8Input) == 24)p = "************************";
+		if(strlen(m_utf8Input) == 25)p = "*************************";
+		if(strlen(m_utf8Input) == 26)p = "**************************";
+		if(strlen(m_utf8Input) == 27)p = "***************************";
+		if(strlen(m_utf8Input) == 28)p = "****************************";
+		if(strlen(m_utf8Input) == 29)p = "*****************************";
+		if(strlen(m_utf8Input) == 30)p = "******************************";
+		if(strlen(m_utf8Input) == 31)p = "*******************************";
+		if(strlen(m_utf8Input) >= 32)p = "********************************";
+
+		sprintf(ps, "%s", p);
 		ImGui::GetOverlayDrawList()->AddText(pGUI->GetFont(), m_fFontSize, ImVec2(m_Pos.x + m_Size.x * 0.02, m_Pos.y + m_Pos.y * 0.05), 0xFFFFFFFF, p);
 	}
 
@@ -301,32 +338,66 @@ void CKeyBoard::DeleteCharFromInput()
 	}
 }
 
-void funct(){
-	pNetGame->SetGameState(GAMESTATE_WAIT_CONNECT);
-}
-
 void CKeyBoard::Send()
 {
 	VECTOR vecMoveSpeed;
 
 	if(m_pHandler) 
 	{
-		if(m_sInput == "//info"){
-			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Some commands may not work or have their limitations on official servers.");
-			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}/modsa(/ms) | /day | /night | /skin | /textdraw(/td)");
-			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}/xyz | /weather | /reconnect(/rec) | /dwe");
-			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}/pickups(/pks) | /quit(/q) | /3dtxt | /objects(/objs)");
-			m_bEnable = false;
-		}else if(m_sInput == ADDRONE or m_sInput == ADDRTWO){
-			// nothing...
-		}else if(m_sInput == "/textdraw" or m_sInput == "/td" && pNetGame){
+		if(m_sInput == "/textdraw" or m_sInput == "/td" && pNetGame){
 			pTextDraw->Show(true);
 			m_bEnable = false;
-		}else if(m_sInput == "/skin"){
-			pSkinChanger->Show(true);
+		}else if(m_sInput == "/tab" or m_sInput == "/players" && pNetGame){
+			pPlayersList->Show(true);
+			m_bEnable = false;
+		}else if(m_sInput == "/tgtextdraws" or m_sInput == "/tgtds" && pNetGame){
+			if(pModSAWindow->m_bSTD != 1)
+			{
+				pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}TextDraw's disabled!");
+				pModSAWindow->m_bSTD = 1;
+			}else{
+				pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}TextDraw's enabled!");
+				pModSAWindow->m_bSTD = 0;
+			}
 			m_bEnable = false;
 		}else if(m_sInput == "/keys" && pNetGame){
 			pExtraKeyBoard->Show(true);
+			m_bEnable = false;
+		}else if(m_sInput == "/ca"){
+			CAMERA_AIM *pCam = GameGetInternalAim();
+
+			int dwHitEntity = 0;
+			VECTOR vecPos;
+			vecPos.X = 0.0;
+			vecPos.Y = 0.0;
+			vecPos.Z = 0.0;
+
+			CPlayerPool* pPlayerPool = pNetGame->GetPlayerPool();
+
+			for(PLAYERID playerId = 0; playerId < MAX_PLAYERS; playerId++)
+			{
+				if(pPlayerPool->GetSlotState(playerId) == true)
+				{
+					CRemotePlayer* pPlayer = pPlayerPool->GetAt(playerId);
+
+					if(pPlayer && pPlayer->IsActive())
+					{
+						CPlayerPed* pPlayerPed = pPlayer->GetPlayerPed();
+						pPlayerPed->GetBonePosition(8, &vecPos);
+
+						dwHitEntity = ScriptCommand(&get_line_of_sight, vecPos.X, vecPos.Y, vecPos.Z, pCam->pos1x, pCam->pos1y, pCam->pos1z, 1, 0, 0, 1, 0);
+
+						pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}posX: %f posY: %f posZ: %f", vecPos.X, vecPos.Y, vecPos.Z);
+					}
+				}
+			}
+
+			//pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}f1x - %f f1y - %f f1z - %f", camAim->f1x, camAim->f1y, camAim->f1z);
+			//pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}f2x - %f f2y - %f f2z - %f", camAim->f2x, camAim->f2y, camAim->f2z);
+			//pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}pos1x - %f pos1y - %f pos1z - %f", camAim->pos1x, camAim->pos1y, camAim->pos1z);
+			//pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}pos2x - %f pos2y - %f pos2z - %f", camAim->pos2x, camAim->pos2y, camAim->pos2z);
+		}else if(m_sInput == "/skin"){
+			pSkinChanger->Show(true);
 			m_bEnable = false;
 		}else if(m_sInput == "/weather"){
 			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Using: /weather clear | rainy | foggy | purple");
@@ -355,56 +426,16 @@ void CKeyBoard::Send()
 			pModSAWindow->lock_time = 1;
 			pGame->SetWorldTime(0, 0);
 			m_bEnable = false;
-		}else if(m_sInput == "/xyz"){
-			MATRIX4X4 mat;
-    		pGame->FindPlayerPed()->GetMatrix(&mat);
-			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Player on X: %f Y: %f Z: %f", mat.pos.X, mat.pos.Y, mat.pos.Z);
-		}else if(m_sInput == "/modsa" or m_sInput == "/ms" && pModSAWindow->protect != 1 && pNetGame &&  pNetGame->GetGameState() == GAMESTATE_CONNECTED){
-			pModSAWindow->m_bMenuStep = 1;
-			pModSAWindow->Show(true);
-			m_bEnable = false;
-		}else if((m_sInput == "/reconnect" or m_sInput == "/rec")){
-			if(pNetGame->GetGameState() == GAMESTATE_CONNECTED){
-				pNetGame->ShutDownForGameRestart();
-				pNetGame->GetRakClient()->Disconnect(500);
-				Timer timer;
-				timer.add(std::chrono::milliseconds(15000), funct, true);
-				pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Reconnect in 15 seconds...");
-			}else{
-				pNetGame->SetGameState(GAMESTATE_WAIT_CONNECT);
-			}
-			m_bEnable = false;
-		}else if(m_sInput == "/q"){
+		}else if(m_sInput == "/q" or m_sInput == "/quit"){
 			exit(0);
 			m_bEnable = false;
-		}else if(m_sInput == "/quit"){
-			exit(0);
+		}else if(m_sInput == "/author"){
+			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Client by QDS Team");
+			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}https://vk.com/mobile.samp");
 			m_bEnable = false;
-		}else if(m_sInput == "/dwe" && pModSAWindow->protect != 1){
-			pModSAWindow->ToggleRPC(0);
-			pModSAWindow->ToggleRPC(1);
-			pModSAWindow->ToggleRPC(2);
-			if(pModSAWindow->m_bVP == 1)
-				pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}DWE enabled!");
-					else pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}DWE disabled!");
-			m_bEnable = false;
-		}else if((m_sInput == "/objects" or m_sInput == "/objs") && pModSAWindow->protect != 1 && pNetGame && pNetGame->GetGameState() == GAMESTATE_CONNECTED){
-			pModSAWindow->ToggleRPC(3);
-			if(pModSAWindow->m_bCO == 1)
-				pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Objects disabled!");
-					else pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Objects enabled!");
-			m_bEnable = false;
-		}else if((m_sInput == "/pickups" or m_sInput == "/pks") && pNetGame &&  pNetGame->GetGameState() == GAMESTATE_CONNECTED){
-			pModSAWindow->ToggleRPC(9);
-			if(pModSAWindow->m_bCP == 1)
-				pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Pickups disabled!");
-					else pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}Pickups enabled!");
-			m_bEnable = false;
-		}else if(m_sInput == "/3dtxt" && pNetGame && pNetGame->GetGameState() == GAMESTATE_CONNECTED){
-			pModSAWindow->ToggleRPC(15);
-			if(pModSAWindow->m_bCTL == 1)
-				pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}3DTextLabel disabled!");
-					else pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}3DTextLabel enabled!");
+		}else if(m_sInput == "/client"){
+			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}/quit(/q) | /day | /night | /weather | /author");
+			pChatWindow->AddInfoMessage("{E8E311}> {FFFFFF}/skin | /keys | /textdraw(/td) | /tgtextdraws(/tgtds)");
 			m_bEnable = false;
 		}else{
 			m_pHandler(m_sInput.c_str());

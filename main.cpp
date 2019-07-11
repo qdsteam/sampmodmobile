@@ -24,9 +24,7 @@
 #include "menu.h"
 #include "textdraw.h"
 #include "playerslist.h"
-//#include "shpora.h"
 #include "skinchanger.h"
-
 #include "util/armhook.h"
 #include "checkfilehash.h"
 
@@ -43,7 +41,6 @@ CServersWindow *pServersWindow = nullptr;
 CSetsWindow *pSetsWindow = nullptr;
 CCustomServerWindow *pCustomServer = nullptr;
 CSkinChanger *pSkinChanger = nullptr;
-//CShpora *pShpora = nullptr;
 
 CChatWindow *pChatWindow = nullptr;
 CSpawnScreen *pSpawnScreen = nullptr;
@@ -67,17 +64,17 @@ void MainLoop();
 
 void InitSAMP()
 {
-	Log("Initializing SAMP..");
+	Log("Initializing SA-MP..");
 	g_pszStorage = (const char*)(g_libGTASA+0x63C4B8);
 
 	if(!g_pszStorage)
 	{
-		Log("Error: storage path not found!");
+		Log("> Error: storage path not found!");
 		std::terminate();
 		return;
 	}
 
-	Log("Storage 1: %s", g_pszStorage);
+	Log("> Storage: %s", g_pszStorage);
 
 	pSettings = new CSettings();
 }
@@ -87,13 +84,11 @@ void InitInMenu()
 	pGame = new CGame();
 	pGame->InitInMenu();
 	
-	if(pSettings->Get().bDebug)
-		pDebug = new CDebug();
+	if(pSettings->Get().bDebug) pDebug = new CDebug();
 
 	pGUI = new CGUI();
 	pSkinChanger = new CSkinChanger();
-	//pPlayersList = new CPlayersList();
-	//pShpora = new CShpora();
+	pPlayersList = new CPlayersList();
 	pDialogWindow = new CDialogWindow();
 	pExtraKeyBoard = new CExtraKeyBoard();
 	pMenu = new CMenu();
@@ -118,7 +113,7 @@ void InitInGame()
 		pGame->InitInGame();
 		pGame->SetMaxStats();
 
-		if(pDebug && !pSettings->Get().bOnline)pDebug->SpawnLocalPlayer();
+		if(pDebug && !pSettings->Get().bOnline) pDebug->SpawnLocalPlayer();
 
 		bGameInited = true;
 		return;
@@ -128,7 +123,13 @@ void InitInGame()
 	{
 		pModSAWindow->Clear();
 		pSetsWindow->Clear();
-		pSetsWindow->Show(true);
+        pModSAWindow->extOS = 0;
+
+        pCustomServer->Show(true);
+        //pModSAWindow->ToggleRPC(3); // objects
+		//pModSAWindow->ToggleRPC(9); // pickups
+		//pModSAWindow->ToggleRPC(15); // 3DTextLabel 
+
 		bNetworkInited = true;
 		return;
 	}
@@ -192,16 +193,14 @@ void *Init(void *p)
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
-	Log("SAMP library loaded! Build time: " __DATE__ " " __TIME__);
-
 	g_libGTASA = FindLibrary("libGTASA.so");
 	if(g_libGTASA == 0)
 	{
-		Log("ERROR: libGTASA.so address not found!");
+		Log("> ERROR: libGTASA.so address not found!");
 		return 0;
 	}
 
-	Log("libGTASA.so image base address: 0x%X", g_libGTASA);
+	Log("> libGTASA.so image base address: 0x%X", g_libGTASA);
 
 	srand(time(0));
 
@@ -243,8 +242,14 @@ void Log(const char *fmt, ...)
 
 	if(pDebug) pDebug->AddMessage(buffer);
 
+	char buff[80];
+	time_t seconds = time(NULL);
+	tm* timeinfo = localtime(&seconds);
+	char* format = "[%I:%M:%S]";
+	strftime(buff, 80, format, timeinfo);
+
 	if(flLog == nullptr) return;
-	fprintf(flLog, "%s\n", buffer);
+	fprintf(flLog, "%s %s\n", buff, buffer);
 	fflush(flLog);
 
 	return;

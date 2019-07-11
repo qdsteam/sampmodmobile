@@ -32,6 +32,7 @@ public:
 	char		m_utf8Title[64*3 + 1];
 	char*		m_putf8Info;
 	char* 		m_pszInfo;
+	char*		szTabInfo;
 	char		m_utf8Button1[64*3 + 1];
 	char		m_utf8Button2[64*3 + 1];
 
@@ -39,6 +40,9 @@ public:
 	float 		m_fSizeY;
 
 	int 		passEntering;
+	int 		fxdialog;
 
-	int m_bSL;
+	int 		m_selectedItem;
+
+	int 		m_bSL;
 };

@@ -18,7 +18,7 @@ extern CModSAWindow *pModSAWindow;
 
 CPlayerTags::CPlayerTags()
 {
-	Log("CPlayerTags: Loading afk_icon..");
+	//Log("CPlayerTags: Loading afk_icon..");
 	m_pAfk_icon = (RwTexture*)LoadTextureFromDB("samp", "afk_icon");
 
 	HealthBarBDRColor = ImColor( 0x00, 0x00, 0x00, 0xFF );
@@ -196,7 +196,7 @@ void CPlayerTags::Draw(VECTOR* vec, char* szName, uint32_t dwColor,
 		HealthBar2.y -= 13.0f;
 
 		HealthBarColor = ImColor(200, 200, 200, 255);
-		HealthBarBGColor = ImColor(40, 40, 40, 255);
+		HealthBarBGColor = ImColor(40, 40, 40, 100);
 
 		if(fArmour > 100.0f)
 			fArmour = 100.0f;

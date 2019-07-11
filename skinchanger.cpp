@@ -1,3 +1,6 @@
+#include <string.h>
+#include <stdlib.h>
+
 #include "main.h"
 #include "game/game.h"
 #include "net/netgame.h"
@@ -7,11 +10,7 @@
 #include "skinchanger.h"
 #include "chatwindow.h"
 #include "modsa.h"
-
 #include "vendor/inih/cpp/INIReader.h"
-
-#include <string.h>
-#include <stdlib.h>
 
 extern CGUI *pGUI;
 extern CGame *pGame;
@@ -86,13 +85,13 @@ void CSkinChanger::Render()
 			char *strskinid = szSkinIDInputBuffer;
 			unsigned int skinid = atoi(strskinid);
 
-			if(pModSAWindow->protect != 1)
-			{
-				pGame->FindPlayerPed()->SetModelIndex(skinid);
-			}else{
+			//if(pModSAWindow->protect != 1)
+			//{
+			//	pGame->FindPlayerPed()->SetModelIndex(skinid);
+			//}else{
 				if(skinid != 0 && skinid != 99 && skinid != 92) pGame->FindPlayerPed()->SetModelIndex(skinid);
-					else pChatWindow->AddInfoMessage("{FFEA0A}> {FFFFFF}You can not use this skin on the official servers!");
-			}
+					else pChatWindow->AddInfoMessage("{FFEA0A}> {FFFFFF}You can not use this skin!");
+			//}
 			
 			Show(false);
 		}

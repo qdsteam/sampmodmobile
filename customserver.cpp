@@ -34,6 +34,7 @@ CCustomServerWindow::CCustomServerWindow()
 {
 	m_bIsActive = false;
 	m_bFixer = false;
+	m_bFixer2 = false;
 }
 
 CCustomServerWindow::~CCustomServerWindow()
@@ -126,6 +127,44 @@ void CCustomServerWindow::Render()
 			}
 		}
 
+		ImGui::SameLine(0, pGUI->GetFontSize());
+
+		if(m_bFixer2 == false)
+		{
+			if(ImGui::Button("(O) Objects", ImVec2(165, 50)))
+			{
+				if(m_bFixer2 == true){
+					m_bFixer2 = false;
+				}else{
+					m_bFixer2 = true;
+				}
+			}
+		}else{
+			if(ImGui::Button("Objects", ImVec2(165, 50)))
+			{
+				if(m_bFixer2 == true){
+					m_bFixer2 = false;
+				}else{
+					m_bFixer2 = true;
+				}
+			}
+		}
+
+		ImGui::SameLine(0, pGUI->GetFontSize());
+
+		if(pModSAWindow->m_bCTL == false)
+		{
+			if(ImGui::Button("(O) 3DTextLabel", ImVec2(165, 50)))
+			{
+				pModSAWindow->ToggleRPC(15);
+			}
+		}else{
+			if(ImGui::Button("3DTextLabel", ImVec2(165, 50)))
+			{
+				pModSAWindow->ToggleRPC(15);
+			}
+		}
+
 		ImGui::ItemSize( ImVec2(0, pGUI->GetFontSize()/2 + 5) );
 		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 278 + ImGui::GetStyle().ItemSpacing.x) / 2);
 
@@ -141,22 +180,27 @@ void CCustomServerWindow::Render()
 			{
 				pModSAWindow->ToggleRPC(3); // objects
 				pModSAWindow->ToggleRPC(9); // pickups
-				pModSAWindow->ToggleRPC(15); // 3DTextLabel 
+				//pModSAWindow->ToggleRPC(15); // 3DTextLabel 
 			} 
 
-			pNetGame = new CNetGame(address, port, pSetsWindow->username, pSetsWindow->password);
+			pNetGame = new CNetGame(address, port, pSettings->Get().szNickName, pSettings->Get().szPassword);
 			Show(false);
+			
 			if(pGame) 
             	pGame->FindPlayerPed()->TogglePlayerControllable(true);
 		}
 
 		ImGui::SameLine(0, pGUI->GetFontSize());
 		
-		if(ImGui::Button("Back", ImVec2(125, 50)))
+		if(ImGui::Button("Import", ImVec2(125, 50)))
 		{
-			pServersWindow->m_bMenuStep = 1;
-			pServersWindow->Show(true);
-			Show(false);
+			pModSAWindow->protect = 0;
+
+			sprintf(szIPInputBuffer, "%s", pSettings->Get().szHost);
+			sprintf(utf8IPInputBuffer, "%s", pSettings->Get().szHost);
+
+			sprintf(szPortInputBuffer, "%d", pSettings->Get().iPort);
+			sprintf(utf8PortInputBuffer, "%d", pSettings->Get().iPort);
 		}
 
 	ImGui::SetWindowSize(ImVec2(-1, -1));

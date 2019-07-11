@@ -15,4 +15,5 @@ public:
 	char*				address;
 	int					port;
 	bool				m_bFixer;
+	bool				m_bFixer2;
 };

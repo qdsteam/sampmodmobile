@@ -89,23 +89,23 @@ void CServersWindow::ShowAllServers()
             pGame->FindPlayerPed()->TogglePlayerControllable(true);
     }
 
-    if(ImGui::Button("SanTrope RP", ImVec2(350, 50)))
-    {
-        unsigned short port = 7777;
-        pModSAWindow->extOS = 0;
-        pModSAWindow->ToggleRPC(9); // pickups
-
-        pNetGame = new CNetGame( 
-            AddressThree,
-            port, 
-            pSetsWindow->username,
-            pSetsWindow->password);
-        Show(false);
-
-        pModSAWindow->protect = 1;
-        if(pGame) 
-            pGame->FindPlayerPed()->TogglePlayerControllable(true);
-    }
+    //if(ImGui::Button("SanTrope RP", ImVec2(350, 50)))
+    //{
+    //    unsigned short port = 7777;
+    //    pModSAWindow->extOS = 1;
+    //    pModSAWindow->ToggleRPC(9); // pickups
+//
+    //    pNetGame = new CNetGame( 
+    //        AddressThree,
+    //        port, 
+    //        pSetsWindow->username,
+    //        pSetsWindow->password);
+    //    Show(false);
+//
+    //    pModSAWindow->protect = 1;
+    //    if(pGame) 
+    //        pGame->FindPlayerPed()->TogglePlayerControllable(true);
+    //}
 
     ImGui::ItemSize( ImVec2(0, pGUI->GetFontSize()/2 + 5) );
     ImGui::Text("Internet");

@@ -8,6 +8,7 @@
 #include "dialog.h"
 #include "modsa.h"
 #include "extrakeyboard.h"
+#include "playerslist.h"
 
 extern CGUI *pGUI;
 extern CKeyBoard *pKeyBoard;
@@ -16,6 +17,7 @@ extern CDialogWindow *pDialogWindow;
 extern CModSAWindow *pModSAWindow;
 extern CNetGame *pNetGame;
 extern CExtraKeyBoard *pExtraKeyBoard;
+extern CPlayersList *pPlayersList;
 
 void ChatWindowInputHandler(const char* str)
 {
@@ -37,7 +39,7 @@ CChatWindow::CChatWindow()
 	m_fChatSizeX = pGUI->ScaleX( pSettings->Get().fChatSizeX + 12.5 );
 	m_fChatSizeY = pGUI->ScaleY( pSettings->Get().fChatSizeY + 12.5 );
 	m_iMaxMessages = pSettings->Get().iChatMaxMessages;
-	Log("Chat pos: %f, %f, size: %f, %f", m_fChatPosX, m_fChatPosY, m_fChatSizeX, m_fChatSizeY);
+	//Log("Chat pos: %f, %f, size: %f, %f", m_fChatPosX, m_fChatPosY, m_fChatSizeX, m_fChatSizeY);
 
 	m_dwTextColor = 0xFFFFFFFF;
 	m_dwInfoColor = 0x00C8C8FF;
@@ -65,7 +67,7 @@ bool CChatWindow::OnTouchEvent(int type, bool multi, int x, int y)
 				x >= m_fChatPosX && x <= m_fChatPosX + m_fChatSizeX &&
 				y >= m_fChatPosY && y <= m_fChatPosY + m_fChatSizeY)
 			{
-				if(!pModSAWindow->m_bIsActive && !pExtraKeyBoard->m_bIsActive)
+				if(!pDialogWindow->m_bIsActive && !pPlayersList->m_bIsActive && !pExtraKeyBoard->m_bIsActive)
 					pKeyBoard->Open(&ChatWindowInputHandler);
 			}
 			bWannaOpenChat = false;
